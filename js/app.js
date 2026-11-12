@@ -101,6 +101,7 @@
 
   function route() {
     main.onscroll = null; // 清除上一页可能残留的目录滚动监听
+    main.classList.remove('has-doc-toc');
     const hash = location.hash || '#/home';
     const m = hash.match(/^#\/(doc|cards)\/(.+)$/);
     if (hash === '#/home' || hash === '') { currentDocId = null; renderHome(); }
@@ -403,6 +404,7 @@
     }
 
     main.innerHTML = `<div class="main-inner">${header}${body}${pagerHtml(docId)}</div>${tocFloat}`;
+    if (tocFloat) main.classList.add('has-doc-toc'); // 宽屏下给内容区让出右侧目录位
 
     // 交互绑定
     const markBtn = document.getElementById('markBtn');

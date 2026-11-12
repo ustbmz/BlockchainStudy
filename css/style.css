@@ -318,6 +318,10 @@ body {
   scrollbar-width: thin;
 }
 .doc-toc a.active { color: var(--accent); font-weight: 600; }
+/* 显示悬浮目录时，内容区右侧预留空间，避免正文被面板遮挡 */
+@media (min-width: 1361px) {
+  #main.has-doc-toc { padding-right: 280px; }
+}
 /* ≥1361px：只显示悬浮目录；≤1360px：只显示文内目录 */
 @media (min-width: 1361px) { .toc-inline { display: none; } }
 @media (max-width: 1360px) { .doc-toc { display: none; } }
