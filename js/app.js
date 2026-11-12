@@ -39,12 +39,28 @@
     return s;
   }
 
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   function renderMD(md) {
     const used = {};
+    // 关键：marked 会把 \( \) \[ \] 当成转义括号吃掉反斜杠，
+    // 导致 KaTeX 行内公式 (\sqrt{k}) 无法识别。
+    // 所以先在 markdown 解析前把所有公式段抽成占位符，解析后再还原。
+    const mathStore = [];
+    const protect = re => { md = md.replace(re, m => `@@MATH${mathStore.push(m) - 1}@@`); };
+    protect(/\$\$[\s\S]+?\$\$/g);
+    protect(/\\\([\s\S]+?\\\)/g);
+    protect(/\\\[[\s\S]+?\\\]/g);
+
     // 提取标题生成锚点
     const el = document.createElement('div');
     el.className = 'md-body';
-    el.innerHTML = marked.parse(md);
+    let html = marked.parse(md);
+    // 还原公式原文（HTML 转义后放回），交给 KaTeX 渲染
+    html = html.replace(/@@MATH(\d+)@@/g, (_, i) => escapeHtml(mathStore[+i]));
+    el.innerHTML = html;
     // 标题加 id（用于目录）
     const tocItems = [];
     el.querySelectorAll('h2, h3').forEach(h => {
