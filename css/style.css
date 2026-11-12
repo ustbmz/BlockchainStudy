@@ -300,6 +300,31 @@ body {
 .toc a:hover { color: var(--accent); }
 .toc a.l3 { padding-left: 18px; font-size: 12.5px; }
 
+/* 右侧悬浮目录（宽屏时替代文内目录） */
+.doc-toc {
+  position: fixed;
+  right: 20px;
+  top: 28px;
+  width: 236px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(31, 35, 40, .08);
+  padding: 12px 14px;
+  margin: 0;
+  z-index: 30;
+  scrollbar-width: thin;
+}
+.doc-toc a.active { color: var(--accent); font-weight: 600; }
+/* ≥1361px：只显示悬浮目录；≤1360px：只显示文内目录 */
+@media (min-width: 1361px) { .toc-inline { display: none; } }
+@media (max-width: 1360px) { .doc-toc { display: none; } }
+@media (max-width: 900px) {
+  .doc-toc { display: none; }
+}
+
 /* 搜索结果 */
 .search-result {
   background: var(--bg-card); border: 1px solid var(--border);

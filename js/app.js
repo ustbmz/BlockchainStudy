@@ -100,6 +100,7 @@
   let currentDocId = null;
 
   function route() {
+    main.onscroll = null; // 清除上一页可能残留的目录滚动监听
     const hash = location.hash || '#/home';
     const m = hash.match(/^#\/(doc|cards)\/(.+)$/);
     if (hash === '#/home' || hash === '') { currentDocId = null; renderHome(); }
@@ -384,16 +385,24 @@
       <h1>${d.title}</h1>`;
 
     let body = '';
+    let tocFloat = '';
     if (cardMode && d.qa) {
       body = renderCards(d);
     } else {
       const { html, toc } = renderMD(d.content);
-      const tocHtml = toc.length > 2 ? `<div class="toc"><div class="toc-title">目录</div>${toc.map(t =>
-        `<a href="javascript:void(0)" class="${t.level === 'H3' ? 'l3' : ''}" data-anchor="${t.id}">${t.text}</a>`).join('')}</div>` : '';
-      body = tocHtml + html;
+      if (toc.length > 2) {
+        const links = toc.map(t =>
+          `<a href="javascript:void(0)" class="${t.level === 'H3' ? 'l3' : ''}" data-anchor="${t.id}">${t.text}</a>`).join('');
+        // 文内目录（窄屏回退用）
+        body = `<div class="toc toc-inline"><div class="toc-title">目录</div>${links}</div>` + html;
+        // 右侧悬浮目录（宽屏显示）
+        tocFloat = `<aside class="doc-toc toc" id="docToc"><div class="toc-title">目录</div>${links}</aside>`;
+      } else {
+        body = html;
+      }
     }
 
-    main.innerHTML = `<div class="main-inner">${header}${body}${pagerHtml(docId)}</div>`;
+    main.innerHTML = `<div class="main-inner">${header}${body}${pagerHtml(docId)}</div>${tocFloat}`;
 
     // 交互绑定
     const markBtn = document.getElementById('markBtn');
@@ -412,6 +421,30 @@
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
     });
+    // 右侧悬浮目录：滚动时高亮当前小节，并让高亮项保持在面板可视区内
+    const tocPanel = document.getElementById('docToc');
+    if (tocPanel) {
+      const heads = [...main.querySelectorAll('h2[id], h3[id]')];
+      let ticking = false;
+      const updateToc = () => {
+        ticking = false;
+        const mainTop = main.getBoundingClientRect().top;
+        let cur = null;
+        for (const h of heads) {
+          if (h.getBoundingClientRect().top - mainTop <= 110) cur = h; else break;
+        }
+        tocPanel.querySelectorAll('a').forEach(a =>
+          a.classList.toggle('active', !!cur && a.dataset.anchor === cur.id));
+        const act = tocPanel.querySelector('a.active');
+        if (act) {
+          const ph = tocPanel.clientHeight;
+          if (act.offsetTop < tocPanel.scrollTop + ph * 0.15 || act.offsetTop > tocPanel.scrollTop + ph * 0.75)
+            tocPanel.scrollTop = act.offsetTop - ph / 2;
+        }
+      };
+      main.onscroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(updateToc); } };
+      updateToc();
+    }
     main.querySelectorAll('[data-pager]').forEach(el => {
       el.onclick = () => { location.hash = `#/${el.dataset.mode}/${el.dataset.pager}`; };
     });
