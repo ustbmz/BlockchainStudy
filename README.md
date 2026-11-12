@@ -5,6 +5,8 @@
 
 在线访问：<https://ustbmz.github.io/BlockchainStudy/>
 
+> 部署方式：GitHub Pages 从 `main` 分支根目录直接发布（仓库根即站点根），`.nojekyll` 关闭 Jekyll 处理，推送即生效。
+
 ---
 
 ## 功能
