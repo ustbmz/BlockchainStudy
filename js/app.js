@@ -410,8 +410,9 @@
     if (!prev && !next) return '';
     const btn = (d, dir) => d ? `
       <a class="pager-btn ${dir}" href="javascript:void(0)" data-pager="${d.id}" data-mode="doc">
-        <span class="pager-label">${dir === 'prev' ? '← 上一篇' : '下一篇 →'}</span>
-        <span class="pager-title">${d.title}</span>
+        ${dir === 'next'
+          ? `<span class="pager-title">${d.title}</span><span class="pager-label">下一篇 →</span>`
+          : `<span class="pager-label">← 上一篇</span><span class="pager-title">${d.title}</span>`}
         <span class="pager-ch">阶段 ${C.meta.chapters.find(c => c.id === d.chapter).num}</span>
       </a>` : `<span class="pager-btn ${dir} empty"></span>`;
     return `<div class="doc-pager">${btn(prev, 'prev')}${btn(next, 'next')}</div>`;
