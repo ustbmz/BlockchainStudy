@@ -377,7 +377,7 @@
       body = tocHtml + html;
     }
 
-    main.innerHTML = `<div class="main-inner">${header}${body}</div>`;
+    main.innerHTML = `<div class="main-inner">${header}${body}${pagerHtml(docId)}</div>`;
 
     // 交互绑定
     const markBtn = document.getElementById('markBtn');
@@ -396,8 +396,36 @@
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
     });
+    main.querySelectorAll('[data-pager]').forEach(el => {
+      el.onclick = () => { location.hash = `#/${el.dataset.mode}/${el.dataset.pager}`; };
+    });
     bindCardEvents(d);
   }
+
+  // ---------- 上一篇 / 下一篇 ----------
+  function pagerHtml(docId) {
+    const idx = C.docs.findIndex(x => x.id === docId);
+    const prev = idx > 0 ? C.docs[idx - 1] : null;
+    const next = idx >= 0 && idx < C.docs.length - 1 ? C.docs[idx + 1] : null;
+    if (!prev && !next) return '';
+    const btn = (d, dir) => d ? `
+      <a class="pager-btn ${dir}" href="javascript:void(0)" data-pager="${d.id}" data-mode="doc">
+        <span class="pager-label">${dir === 'prev' ? '← 上一篇' : '下一篇 →'}</span>
+        <span class="pager-title">${d.title}</span>
+        <span class="pager-ch">阶段 ${C.meta.chapters.find(c => c.id === d.chapter).num}</span>
+      </a>` : `<span class="pager-btn ${dir} empty"></span>`;
+    return `<div class="doc-pager">${btn(prev, 'prev')}${btn(next, 'next')}</div>`;
+  }
+
+  // 键盘 ←/→ 翻页（仅在文档页且未聚焦输入框时生效）
+  document.addEventListener('keydown', e => {
+    if (!currentDocId) return;
+    const t = e.target;
+    if (t && typeof t.matches === 'function' && t.matches('input, textarea, select')) return;
+    const idx = C.docs.findIndex(x => x.id === currentDocId);
+    if (e.key === 'ArrowLeft' && idx > 0) location.hash = `#/doc/${C.docs[idx - 1].id}`;
+    if (e.key === 'ArrowRight' && idx < C.docs.length - 1) location.hash = `#/doc/${C.docs[idx + 1].id}`;
+  });
 
   // ---------- 复习卡片 ----------
   function renderCards(d) {
