@@ -443,32 +443,26 @@ body {
 .cta-sub { font-size: 13px; color: var(--text-dim); }
 .btn[disabled] { opacity: .55; cursor: not-allowed; }
 
-/* ---------- 上一篇 / 下一篇（悬浮固定在底部） ---------- */
+/* ---------- 上一篇 / 下一篇（文档底部，左右分布） ---------- */
 .doc-pager {
-  position: sticky; bottom: 0; z-index: 20;
-  display: flex; gap: 10px;
-  margin: 28px 0 0;
-  padding: 10px 0;
-  background: linear-gradient(rgba(255,255,255,0), var(--bg) 40%);
-  pointer-events: none;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 24px; margin-top: 40px;
 }
 .pager-btn {
-  pointer-events: auto;
-  flex: 1; display: flex; align-items: center; gap: 8px;
-  min-width: 0; padding: 6px 14px;
-  border: 1px solid var(--border); border-radius: 999px;
-  background: rgba(255, 255, 255, .92);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(31, 35, 40, .08);
-  cursor: pointer; text-decoration: none; font-size: 12.5px; line-height: 1.4;
-  transition: border-color .15s, background .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-width: 0; padding: 8px 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg-card);
+  cursor: pointer; text-decoration: none; font-size: 13px; line-height: 1.4;
+  transition: border-color .15s, background .15s, color .15s;
 }
-.pager-btn:hover { border-color: var(--accent); background: #fff; }
+.pager-btn:hover { border-color: var(--accent); background: var(--bg-soft); }
 .pager-btn.empty { visibility: hidden; }
-.pager-btn.next { justify-content: flex-end; }
 .pager-label { flex: none; color: var(--text-dim); }
+.pager-btn:hover .pager-label { color: var(--accent); }
 .pager-title {
   color: var(--accent); font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 320px;
 }
 .pager-ch { display: none; }
