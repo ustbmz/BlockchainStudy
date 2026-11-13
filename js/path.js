@@ -35,9 +35,13 @@ window.__LEARN_PATH__ = {
     { id: 'p25', stage: 4, t: 'ERC / EIP 标准整理', d: '通过在线速查手册学习常用标准（DEX / 借贷 / NFT / 钱包 / AI+Web3 场景），掌握关键接口方法与选型依据。', h: 3, link: { name: 'ERC / EIP 标准速查手册', url: 'https://ustbmz.github.io/ERC/' } },
 
     // ---------- 阶段五：项目拆解 ----------
-    { id: 'p26', stage: 5, t: 'Pledge 质押项目拆解', d: '从业务角度读项目：资金流、合约方法、事件监听与数据入库，画出整体架构图。', h: 6, docs: ['project/作业要求（老师的原始任务书）'] },
-    { id: 'p27', stage: 5, t: 'NFT Market 项目拆解', d: '拆解挂单、购买、取消流程与前后端数据流转，说明各模块职责。', h: 6, docs: [] },
-    { id: 'p28', stage: 5, t: '永续合约项目拆解', d: '结合合约仓库与 perp-backend，理解开平仓、资金费率与清算的后端协同。', h: 8, docs: [] },
-    { id: 'p29', stage: 5, t: '输出：架构图 + 讲解练习', d: '给每个项目画出架构图，向别人讲清核心业务流程——能讲明白才算真的学会了。', h: 4, docs: ['project/✍️ 项目拆解笔记（待补充）'] },
+    { id: 'p26', stage: 5, t: '拆解方法论：5 步读陌生 Web3 项目', d: '先固定套路：读 README 与部署脚本列出合约 → 从用户操作找入口方法 → 跟一遍资金流 → 找事件与后端同步 → 画出架构图。后面三个项目都照这套流程走。', h: 2, docs: ['project/🧩 项目拆解模板（三大项目通用）', 'project/作业要求（老师的原始任务书）'] },
+    { id: 'p27', stage: 5, t: 'Pledge · 合约业务流程（起手项目）', d: '业务最简单的一条线：质押 → 计奖励 → 领取 / 赎回。重点看奖励怎么算、解质押队列与权限控制，以及资金在合约里如何流转。', h: 5, link: { name: 'Pledge 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-Pledge' } },
+    { id: 'p28', stage: 5, t: 'Pledge · 后端模块与数据入库', d: '看后端怎么监听质押 / 领取事件、存了哪些表、API 如何查询收益与持仓，理解「链上状态 → 数据库 → 接口」这条链路。', h: 5, link: { name: 'Pledge 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-Pledge' } },
+    { id: 'p29', stage: 5, t: 'NFT Market · 合约流程（挂单 / 购买 / 分账）', d: '市场类通用套路：mint → 授权或托管挂单 → 购买 → 版税分账 → 取消挂单。重点看 NFT 归属变化和资金在合约之间的转移路径。', h: 6, link: { name: 'NFT Market 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-NFTMarket' } },
+    { id: 'p30', stage: 5, t: 'NFT Market · 前后端数据流转', d: '把订单从「链上事件 → 后端索引入库 → 前端列表展示」的链路串起来，说明前端每个页面调了哪些合约方法与 API。', h: 5, link: { name: 'NFT Market 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-NFTMarket' } },
+    { id: 'p31', stage: 5, t: '永续合约 · 核心资金流（保证金 / 杠杆 / 清算）', d: '最硬的骨头，放最后：开仓保证金、杠杆与仓位、标记价格、资金费率、强平清算。第一轮只跟资金流，不钻实现细节。', h: 8, link: { name: '永续合约仓库', url: 'https://github.com/MetaNodeAcademy/perpetual-contract' } },
+    { id: 'p32', stage: 5, t: '永续合约 · 后端同步与风险引擎', d: '看 perp-backend 如何同步仓位与价格、如何计算风险并触发清算、API 怎样对外提供行情与持仓数据。', h: 8, link: { name: '永续合约后端仓库', url: 'https://github.com/MetaNodeAcademy/perp-backend' } },
+    { id: 'p33', stage: 5, t: '输出：三张架构图 + 讲解练习', d: '每个项目产出一张架构图（前端 / 后端 / 合约三列 + 数据流箭头）和一页模块职责表，然后讲给别人听——能讲明白才算真的学会。', h: 6, docs: ['project/🧩 项目拆解模板（三大项目通用）'] },
   ],
 };

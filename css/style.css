@@ -106,6 +106,10 @@ body {
 }
 .nav-doc:hover { background: var(--bg-hover); color: var(--text); }
 .nav-doc.active { background: rgba(9, 105, 218, .1); color: var(--accent); }
+/* 侧栏的阶段「作业要求」入口 */
+.nav-doc.teacher-entry { color: var(--text); font-weight: 500; }
+.nav-doc.teacher-entry .dot { background: var(--accent-2); }
+.nav-doc.teacher-entry:hover { color: var(--accent-2); }
 .nav-doc.is-teacher { color: var(--orange); }
 .nav-doc .dot {
   width: 6px; height: 6px; border-radius: 50%;
