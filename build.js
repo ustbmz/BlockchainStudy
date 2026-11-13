@@ -148,6 +148,7 @@ const chapters = [
     groups: [
       { name: '拆解方法', docs: [
         { title: '🧩 项目拆解模板（三大项目通用）', inline: 'projectTodo', lang: 'md' },
+        { title: '📊 四项目对照总览：一条交易系统的四个切面（复盘用）', file: 'backup/projectBreakdown/overview-four-projects.md', lang: 'md' },
       ]},
       { name: 'Pledge · 固定利率借贷', docs: [
         { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'backup/projectBreakdown/pledge-breakdown.md', lang: 'md' },
@@ -158,6 +159,9 @@ const chapters = [
       ]},
       { name: 'MetaNode · 永续合约 DEX', docs: [
         { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'backup/projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
+      ]},
+      { name: 'market-match · 撮合引擎', docs: [
+        { title: '撮合引擎全景拆解：DB 定序 → 订单簿 → 撮合分派 → 快照恢复', file: 'backup/projectBreakdown/market-match-breakdown.md', lang: 'md' },
       ]},
     ],
   },
