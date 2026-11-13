@@ -36,12 +36,12 @@ window.__LEARN_PATH__ = {
 
     // ---------- 阶段五：项目拆解 ----------
     { id: 'p26', stage: 5, t: '拆解方法论：5 步读陌生 Web3 项目', d: '先固定套路：读 README 与部署脚本列出合约 → 从用户操作找入口方法 → 跟一遍资金流 → 找事件与后端同步 → 画出架构图。后面三个项目都照这套流程走。', h: 2, docs: ['project/🧩 项目拆解模板（三大项目通用）', 'project/作业要求（老师的原始任务书）'] },
-    { id: 'p27', stage: 5, t: 'Pledge · 合约业务流程（起手项目）', d: '业务最简单的一条线：质押 → 计奖励 → 领取 / 赎回。重点看奖励怎么算、解质押队列与权限控制，以及资金在合约里如何流转。', h: 5, link: { name: 'Pledge 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-Pledge' } },
-    { id: 'p28', stage: 5, t: 'Pledge · 后端模块与数据入库', d: '看后端怎么监听质押 / 领取事件、存了哪些表、API 如何查询收益与持仓，理解「链上状态 → 数据库 → 接口」这条链路。', h: 5, link: { name: 'Pledge 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-Pledge' } },
-    { id: 'p29', stage: 5, t: 'NFT Market · 合约流程（挂单 / 购买 / 分账）', d: '市场类通用套路：mint → 授权或托管挂单 → 购买 → 版税分账 → 取消挂单。重点看 NFT 归属变化和资金在合约之间的转移路径。', h: 6, link: { name: 'NFT Market 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-NFTMarket' } },
-    { id: 'p30', stage: 5, t: 'NFT Market · 前后端数据流转', d: '把订单从「链上事件 → 后端索引入库 → 前端列表展示」的链路串起来，说明前端每个页面调了哪些合约方法与 API。', h: 5, link: { name: 'NFT Market 项目仓库', url: 'https://github.com/MetaNodeAcademy/ProjectBreakdown-NFTMarket' } },
-    { id: 'p31', stage: 5, t: '永续合约 · 核心资金流（保证金 / 杠杆 / 清算）', d: '最硬的骨头，放最后：开仓保证金、杠杆与仓位、标记价格、资金费率、强平清算。第一轮只跟资金流，不钻实现细节。', h: 8, link: { name: '永续合约仓库', url: 'https://github.com/MetaNodeAcademy/perpetual-contract' } },
-    { id: 'p32', stage: 5, t: '永续合约 · 后端同步与风险引擎', d: '看 perp-backend 如何同步仓位与价格、如何计算风险并触发清算、API 怎样对外提供行情与持仓数据。', h: 8, link: { name: '永续合约后端仓库', url: 'https://github.com/MetaNodeAcademy/perp-backend' } },
-    { id: 'p33', stage: 5, t: '输出：三张架构图 + 讲解练习', d: '每个项目产出一张架构图（前端 / 后端 / 合约三列 + 数据流箭头）和一页模块职责表，然后讲给别人听——能讲明白才算真的学会。', h: 6, docs: ['project/🧩 项目拆解模板（三大项目通用）'] },
+    { id: 'p27', stage: 5, t: 'Pledge · 固定利率借贷全景', d: '注意它本质是「借贷协议」不是质押：管理员建池定死利率与期限 → 放款方存稳定币 / 借款方抵押 → settle() 一次性撮合双方成交额 → 领 spToken/jpToken 凭证 → 到期 finish() 卖抵押物还本息，或抵押不足时 liquidate() 清算。核心是 821 行的池子状态机。', h: 6, docs: ['project/Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）'] },
+    { id: 'p28', stage: 5, t: 'Pledge · 后端双服务与链上同步', d: 'Go 两个进程分工：api 对外提供池子/持仓查询，schedule 轮询链上状态并自动发 settle / finish / liquidate 交易（链上没有定时器，全靠它驱动状态机）。看它同步了哪几张表、configV21.toml 怎么配 MySQL 与 Redis。', h: 5 },
+    { id: 'p29', stage: 5, t: 'EasySwap · 订单生命周期与托管模型', d: '上架即托管（和 Seaport 链下签名相反）：挂单时 NFT 或 ETH 真的进 EasySwapVault → 撮合时只允许买卖一方发起 → 结算按协议费抽成。重点看订单结构、两个撮合场景的价格与资金流向。', h: 6, docs: ['project/EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角'] },
+    { id: 'p30', stage: 5, t: 'EasySwap · 红黑树价格档位精读', d: '链上订单簿的心脏：priceTrees 红黑树按价格排序 + orderQueues FIFO 同价先到先得。读懂 BokkyPooBah 那套库的三个巧思（键即节点、EMPTY=0 当 NIL、RED_FALSE 让 NIL 天然为黑），再对照 OrderStorage 怎么维护树与队列。', h: 6, docs: ['project/精读：红黑树价格档位（RedBlackTreeLibrary）'] },
+    { id: 'p31', stage: 5, t: '永续合约 · paper/credit 账本模型', d: '最硬的骨头。先只抓一个概念：账户余额就是 (paper, reducedCredit) 两个 int128，净值 = Σcredit + Σ(paper × markPrice)；资金费率用一个全局累计值 fundingRate 零遍历影响所有仓位。', h: 8, docs: ['project/MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控'] },
+    { id: 'p32', stage: 5, t: '永续合约 · 撮合、验签与清算风控', d: '链下撮合 + 链上结算：EIP-712 订单（info 字段位编码费率/过期/nonce）→ 白名单引擎撮合 → 任何人提交 trade 上链验签算账 → require(isAllSafe)。清算按折扣接仓、保险费进保险账户、坏账走 handleBadDebt。', h: 8 },
+    { id: 'p33', stage: 5, t: '输出：三张架构图 + 讲解练习', d: '每个项目产出一张架构图（前端 / 后端 / 合约三列 + 数据流箭头）和一页模块职责表，再各写 3 条「审计发现」。然后讲给别人听——能讲明白才算真的学会。', h: 6, docs: ['project/🧩 项目拆解模板（三大项目通用）'] },
   ],
 };

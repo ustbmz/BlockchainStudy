@@ -19,7 +19,7 @@
   function resolveRef(ref) {
     const d = docsByChTitle[ref];
     if (!d) return null;
-    return { id: d.id, hash: '#/doc/' + d.id };
+    return { id: d.id, title: d.title, hash: '#/doc/' + d.id };
   }
 
   // ---------- 本地进度 ----------
@@ -244,9 +244,9 @@
         const locked = stepLocked(st.idx);
         const docChips = (st.docs || []).map(r => {
           const d = resolveRef(r);
-          return d ? `<span class="doc-chip" data-goto="${d.hash}">${r.split('/')[1]}</span>` : '';
+          return d ? `<span class="doc-chip" data-goto="${d.hash}">${d.title || r.split('/')[1]}</span>` : '';
         }).join('');
-        const cardChip = st.cards ? `<span class="doc-chip card" data-goto="#/cards/${resolveRef(st.cards).id}">🃏 ${st.cards.split('/')[1]}</span>` : '';
+        const cardChip = st.cards ? `<span class="doc-chip card" data-goto="#/cards/${resolveRef(st.cards).id}">🃏 ${(resolveRef(st.cards) || {}).title || st.cards.split('/')[1]}</span>` : '';
         const extChip = st.link ? `<span class="doc-chip ext" data-url="${st.link.url}" title="${st.link.url}">📖 ${st.link.name} ↗</span>` : '';
         const action = locked
           ? `<button class="btn small" disabled>🔒 待解锁</button>`

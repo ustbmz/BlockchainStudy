@@ -156,6 +156,9 @@ const chapters = [
         { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'backup/projectBreakdown/easyswap-breakdown.md', lang: 'md' },
         { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'backup/projectBreakdown/red-black-tree.md', lang: 'md' },
       ]},
+      { name: 'MetaNode · 永续合约 DEX', docs: [
+        { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'backup/projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
+      ]},
     ],
   },
 ];
