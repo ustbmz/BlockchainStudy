@@ -152,6 +152,10 @@ const chapters = [
       { name: 'Pledge · 固定利率借贷', docs: [
         { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'backup/projectBreakdown/pledge-breakdown.md', lang: 'md' },
       ]},
+      { name: 'EasySwap · NFT 链上订单簿', docs: [
+        { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'backup/projectBreakdown/easyswap-breakdown.md', lang: 'md' },
+        { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'backup/projectBreakdown/red-black-tree.md', lang: 'md' },
+      ]},
     ],
   },
 ];
