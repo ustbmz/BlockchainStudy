@@ -46,7 +46,8 @@ body {
   cursor: pointer;
   border-bottom: 1px solid var(--border);
 }
-.brand-logo { font-size: 26px; }
+.brand-logo { display: flex; flex: none; margin-right: 2px; }
+.brand-logo svg { border-radius: 8px; box-shadow: 0 1px 3px rgba(9, 105, 218, .28); }
 .brand-title { font-weight: 700; font-size: 15px; letter-spacing: .3px; }
 .brand-sub { font-size: 11px; color: var(--text-dim); }
 

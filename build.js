@@ -152,16 +152,24 @@ const chapters = [
       ]},
       { name: 'Pledge · 固定利率借贷', docs: [
         { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'backup/projectBreakdown/pledge-breakdown.md', lang: 'md' },
+        { title: 'Pledge 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/pledge-study-plan.md', lang: 'md' },
+        { title: 'Pledge 拆解结果：架构图 · 业务流程 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/pledge-breakdown-result.md', lang: 'md' },
       ]},
       { name: 'EasySwap · NFT 链上订单簿', docs: [
         { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'backup/projectBreakdown/easyswap-breakdown.md', lang: 'md' },
+        { title: 'EasySwap 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/easyswap-study-plan.md', lang: 'md' },
+        { title: 'EasySwap 拆解结果：架构图 · 订单生命周期 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/easyswap-breakdown-result.md', lang: 'md' },
         { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'backup/projectBreakdown/red-black-tree.md', lang: 'md' },
       ]},
       { name: 'MetaNode · 永续合约 DEX', docs: [
         { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'backup/projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
+        { title: 'MetaNode 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/metanode-perp-study-plan.md', lang: 'md' },
+        { title: 'MetaNode 拆解结果：两数账本 · 交易四步 · 风控清算 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/metanode-perp-breakdown-result.md', lang: 'md' },
       ]},
       { name: 'market-match · 撮合引擎', docs: [
         { title: '撮合引擎全景拆解：DB 定序 → 订单簿 → 撮合分派 → 快照恢复', file: 'backup/projectBreakdown/market-match-breakdown.md', lang: 'md' },
+        { title: '撮合引擎学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/market-match-study-plan.md', lang: 'md' },
+        { title: '撮合引擎拆解结果：DB as WAL · 三条撮合铁律 · 单写者并发 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/market-match-breakdown-result.md', lang: 'md' },
       ]},
     ],
   },
