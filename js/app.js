@@ -7,6 +7,14 @@
   const docsByChTitle = {};
   C.docs.forEach(d => { docsByChTitle[d.chapter + '/' + d.title] = d; });
 
+  // 阅读顺序 = 侧栏导航顺序：每章任务书打头，再按分组依次排列（供翻页/键盘 ←→ 使用）
+  const navOrder = [];
+  C.meta.chapters.forEach(ch => {
+    const t = docsById[ch.teacherDocId];
+    if (t) navOrder.push(t.id);
+    ch.groups.forEach(g => g.docIds.forEach(id => { if (docsById[id]) navOrder.push(id); }));
+  });
+
   // 解析路径步骤引用的文档（"章节/标题"），cards 引用跳复习卡片模式
   function resolveRef(ref) {
     const d = docsByChTitle[ref];
@@ -132,6 +140,15 @@
           <span>${ch.title}</span>
           <span class="arrow">▼</span>
         </div>`;
+      const tDoc = docsById[ch.teacherDocId];
+      if (tDoc) {
+        const active = currentDocId === tDoc.id ? 'active' : '';
+        const doneCls = docProgress[tDoc.id] ? 'done' : '';
+        html += `<div class="nav-doc teacher-entry ${active} ${doneCls}" data-go="doc/${tDoc.id}">
+          <span class="dot"></span>
+          <span style="overflow:hidden;text-overflow:ellipsis">📌 作业要求（老师的任务书）</span>
+        </div>`;
+      }
       ch.groups.forEach(g => {
         html += `<div class="nav-group">${g.name}</div>`;
         g.docIds.forEach(id => {
@@ -453,11 +470,11 @@
     bindCardEvents(d);
   }
 
-  // ---------- 上一篇 / 下一篇 ----------
+  // ---------- 上一篇 / 下一篇（按侧栏导航顺序） ----------
   function pagerHtml(docId) {
-    const idx = C.docs.findIndex(x => x.id === docId);
-    const prev = idx > 0 ? C.docs[idx - 1] : null;
-    const next = idx >= 0 && idx < C.docs.length - 1 ? C.docs[idx + 1] : null;
+    const idx = navOrder.indexOf(docId);
+    const prev = idx > 0 ? docsById[navOrder[idx - 1]] : null;
+    const next = idx >= 0 && idx < navOrder.length - 1 ? docsById[navOrder[idx + 1]] : null;
     if (!prev && !next) return '';
     const btn = (d, dir) => d ? `
       <a class="pager-btn ${dir}" href="javascript:void(0)" data-pager="${d.id}" data-mode="doc">
@@ -474,9 +491,9 @@
     if (!currentDocId) return;
     const t = e.target;
     if (t && typeof t.matches === 'function' && t.matches('input, textarea, select')) return;
-    const idx = C.docs.findIndex(x => x.id === currentDocId);
-    if (e.key === 'ArrowLeft' && idx > 0) location.hash = `#/doc/${C.docs[idx - 1].id}`;
-    if (e.key === 'ArrowRight' && idx < C.docs.length - 1) location.hash = `#/doc/${C.docs[idx + 1].id}`;
+    const idx = navOrder.indexOf(currentDocId);
+    if (e.key === 'ArrowLeft' && idx > 0) location.hash = `#/doc/${navOrder[idx - 1]}`;
+    if (e.key === 'ArrowRight' && idx < navOrder.length - 1) location.hash = `#/doc/${navOrder[idx + 1]}`;
   });
 
   // ---------- 复习卡片 ----------
