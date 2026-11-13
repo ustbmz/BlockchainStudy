@@ -47,7 +47,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .brand-logo { display: flex; flex: none; margin-right: 2px; }
-.brand-logo svg { border-radius: 8px; box-shadow: 0 1px 3px rgba(9, 105, 218, .28); }
+.brand-logo svg { filter: drop-shadow(0 2px 6px rgba(96, 74, 227, .3)); }
 .brand-title { font-weight: 700; font-size: 15px; letter-spacing: .3px; }
 .brand-sub { font-size: 11px; color: var(--text-dim); }
 
@@ -660,4 +660,51 @@ body.iq-mock-open { overflow: hidden; }
   .iqm-q { font-size: 17px; }
   .iq-mock { padding: 12px 8px; }
   .iqm-inner { max-height: calc(100vh - 24px); }
+}
+
+/* ===== 进站全屏动画（总时长 4.8s · 主缓动 cubic-bezier(.22,1,.36,1) · 每会话只播一次） ===== */
+/* 动画播放期间隐藏主界面，避免加载前闪现页面内容 */
+body.intro-playing{overflow:hidden}
+body.intro-playing #app{visibility:hidden}
+#intro{position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer;background:#12102a}
+#intro.intro-out{opacity:0;transition:opacity .5s ease}
+/* 暗色层做成斜向"光扫"：1.6s~2.7s 间暗幕向左滑出，露出底下白层——破晓不是闪切而是扫过 */
+.intro-bg{position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,#12102a 0%,#12102a 44%,rgba(18,16,42,0) 62%);background-size:300% 100%;background-position:0% 0;animation:introSweep 4s ease-in-out forwards}
+.intro-bg-light{background:#fff;z-index:1}
+@keyframes introSweep{0%,34%{background-position:0% 0}58%,100%{background-position:100% 0}}
+.intro-glow{position:absolute;left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;z-index:3;background:radial-gradient(circle,rgba(130,80,223,.55) 0%,rgba(9,105,218,.35) 45%,rgba(9,105,218,0) 70%);filter:blur(28px);animation:introGlow 4s ease-out forwards}
+@keyframes introGlow{0%{opacity:0;transform:scale(.6)}16%,38%{opacity:1;transform:scale(1)}62%{opacity:.85;transform:scale(2.2)}82%,100%{opacity:0;transform:scale(2.6)}}
+/* 前半段下移 112px 让 logo 本体正居中；2.35s 前回落完毕，与 2.5s 标题浮现错开 */
+.intro-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;display:flex;flex-direction:column;align-items:center;animation:introCenter 4s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes introCenter{0%,44%{margin-top:112px}50%,100%{margin-top:0}}
+.intro-logo{width:96px;height:96px;opacity:0;transform:scale(.6);filter:drop-shadow(0 14px 36px rgba(96,74,227,.45));animation:introLogoIn .7s cubic-bezier(.22,1,.36,1) .08s forwards,introBrighten 1.7s ease-out .1s forwards}
+@keyframes introLogoIn{0%{opacity:0;transform:scale(.6)}55%{opacity:.92}100%{opacity:1;transform:scale(1)}}
+/* 暗场阶段链环提亮保证对比度，破晓转场时回归正常亮度 */
+@keyframes introBrighten{0%{filter:drop-shadow(0 14px 36px rgba(96,74,227,.45)) brightness(1.9)}45%{filter:drop-shadow(0 14px 36px rgba(96,74,227,.45)) brightness(1.5)}100%{filter:drop-shadow(0 14px 36px rgba(96,74,227,.45)) brightness(1)}}
+.intro-logo svg{width:100%;height:100%;display:block}
+.intro-logo .ring{stroke-dasharray:100;stroke-dashoffset:100;animation:introDraw .6s ease-out .8s forwards}
+.intro-logo .ring2{animation-delay:.95s}
+@keyframes introDraw{to{stroke-dashoffset:0}}
+.intro-title{display:flex;gap:8px;margin-top:34px;font-size:64px;font-weight:900;color:#1f2328;letter-spacing:.08em}
+.intro-title span{opacity:0;transform:translateY(18px);animation:introChar .55s cubic-bezier(.22,1,.36,1) forwards}
+.intro-title span:nth-child(1){animation-delay:2.35s}
+.intro-title span:nth-child(2){animation-delay:2.42s}
+.intro-title span:nth-child(3){animation-delay:2.49s}
+.intro-title span:nth-child(4){animation-delay:2.56s}
+@keyframes introChar{to{opacity:1;transform:translateY(0)}}
+.intro-sub{margin-top:18px;font-size:20px;color:#656d76;letter-spacing:.4em;text-indent:.4em;opacity:0;animation:introFade .6s ease-out 2.7s forwards}
+.intro-progress{margin-top:56px;width:300px;height:6px;border-radius:3px;background:#e7ebf0;overflow:hidden;opacity:0;animation:introFade .4s ease-out 2.95s forwards}
+.intro-progress i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#0969da,#8250df);animation:introBar .7s ease-out 2.95s forwards}
+@keyframes introBar{to{width:100%}}
+.intro-load{margin-top:14px;font-size:13px;color:#8b949e;opacity:0;animation:introFade .4s ease-out 3.15s forwards}
+.intro-skip{position:absolute;right:28px;bottom:24px;font-size:13px;color:#8b949e;opacity:0;animation:introFade .4s ease-out 2.45s forwards}
+@keyframes introFade{to{opacity:1}}
+@media (max-width:640px){
+  .intro-title{font-size:44px}
+  .intro-sub{font-size:16px}
+  .intro-glow{width:300px;height:300px;margin:-150px 0 0 -150px}
+}
+@media (prefers-reduced-motion: reduce){
+  #intro{display:none}
+  body.intro-playing #app{visibility:visible}
 }

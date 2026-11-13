@@ -393,7 +393,7 @@
 
     main.innerHTML = `<div class="main-inner">
       <div class="home-hero">
-        <h1><svg width="26" height="26" viewBox="0 0 32 32" fill="none" style="vertical-align:-4px;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgHero" x1="0" y1="32" x2="32" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#lgHero)"/><path d="M13.33 17.33a6.67 6.67 0 0 0 10.05.72l4-4a6.67 6.67 0 0 0-9.43-9.43l-2.29 2.28" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.67 14.67a6.67 6.67 0 0 0-10.05-.72l-4 4a6.67 6.67 0 0 0 9.43 9.43l2.28-2.28" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>共识笔记 · 区块链开发学习中心</h1>
+        <h1><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="vertical-align:-5px;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgHero" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/></linearGradient></defs><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a4 4 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>共识笔记 · 区块链开发学习中心</h1>
         <p>四条学习阶段 + 四个项目拆解 + 面试题库，按课程阶段整理。适合系统复习，也可以直接照着学习。</p>
         <div class="stats">
           <span class="stat-pill">📚 文档 <b>${totalDocs}</b> 篇</span>
