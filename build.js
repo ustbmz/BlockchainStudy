@@ -372,6 +372,81 @@ for (const ch of chapters) {
   docIndex.push(tDoc);
 }
 
+// ---------- 面试题库 ----------
+// 源文件：backup/interview/*.md
+//   # 分类名
+//   > 分类说明
+//   ## 题目？
+//   > 难度(1-3) | 标签, 标签
+//   答案 markdown ...
+const INTERVIEW_DIR = path.join(ANS, 'backup/interview');
+const INTERVIEW_OUT = path.join(__dirname, 'js', 'interview.js');
+
+function parseInterview() {
+  const categories = [];
+  const questions = [];
+  if (!fs.existsSync(INTERVIEW_DIR)) return { categories, questions };
+
+  const files = fs.readdirSync(INTERVIEW_DIR).filter(f => f.endsWith('.md')).sort();
+  files.forEach(file => {
+    const raw = fs.readFileSync(path.join(INTERVIEW_DIR, file), 'utf8').replace(/\r\n/g, '\n');
+    const catId = file.replace(/^\d+-/, '').replace(/\.md$/, '');
+    const cat = { id: catId, name: catId, desc: '', count: 0 };
+    let cur = null, inCode = false, gotMeta = false, gotDesc = false;
+
+    const flush = () => {
+      if (cur && cur.q) {
+        cur.a = cur.a.join('\n').trim();
+        questions.push(cur);
+        cat.count++;
+      }
+      cur = null;
+    };
+
+    for (const line of raw.split('\n')) {
+      if (line.trimStart().startsWith('```')) inCode = !inCode;
+      if (!inCode) {
+        if (!cur && /^#\s+/.test(line)) { cat.name = line.replace(/^#\s+/, '').trim(); continue; }
+        const qm = line.match(/^##\s+(.+)$/);
+        if (qm) {
+          flush();
+          cur = { q: qm[1].trim(), a: [], level: 2, tags: [], cat: catId, catName: cat.name };
+          gotMeta = false;
+          continue;
+        }
+        if (cur && !gotMeta) {
+          const mm = line.match(/^>\s*([1-3])\s*\|\s*(.*)$/);
+          if (mm) {
+            cur.level = +mm[1];
+            cur.tags = mm[2].split(/[,，、]/).map(s => s.trim()).filter(Boolean);
+            gotMeta = true;
+            continue;
+          }
+        }
+        if (!cur && !gotDesc && /^>\s+/.test(line)) {
+          cat.desc = line.replace(/^>\s+/, '').trim();
+          gotDesc = true;
+          continue;
+        }
+      }
+      if (cur) cur.a.push(line);
+    }
+    flush();
+    if (cat.count) categories.push(cat);
+  });
+
+  questions.forEach((q, i) => { q.id = 'q' + (i + 1); });
+  return { categories, questions };
+}
+
+const interview = parseInterview();
+const interviewPayload = {
+  builtAt: new Date().toISOString().slice(0, 10),
+  categories: interview.categories,
+  questions: interview.questions,
+};
+fs.writeFileSync(INTERVIEW_OUT, 'window.__INTERVIEW__ = ' + JSON.stringify(interviewPayload) + ';');
+
 // ---------- 搜索索引 ----------
 const searchIndex = docIndex.map(d => ({
   id: d.id, chapter: d.chapter, title: d.title,
@@ -393,3 +468,5 @@ const payload = { meta, docs: docIndex, cards: allCards, searchIndex };
 fs.writeFileSync(OUT, 'window.__CONTENT__ = ' + JSON.stringify(payload) + ';');
 console.log(`✔ 生成 ${OUT}`);
 console.log(`  文档 ${docIndex.length} 篇 · 复习卡片 ${allCards.length} 张 · 内容 ${(fs.statSync(OUT).size / 1024).toFixed(0)} KB`);
+console.log(`✔ 生成 ${INTERVIEW_OUT}`);
+console.log(`  面试题 ${interview.questions.length} 道 · 分类 ${interview.categories.length} 个 · ${(fs.statSync(INTERVIEW_OUT).size / 1024).toFixed(0)} KB`);

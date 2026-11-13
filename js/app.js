@@ -1,4 +1,4 @@
-/* 区块链开发复习中心 · 前端逻辑 */
+/* 共识笔记 · 区块链开发学习中心 · 前端逻辑 */
 (function () {
   const C = window.__CONTENT__;
   const LP = window.__LEARN_PATH__ || { steps: [] };
@@ -27,16 +27,19 @@
   const LS_CARD = 'bcr_cards_v1';
   const LS_NAV = 'bcr_nav_v1';
   const LS_PATH = 'bcr_path_v1';
+  const LS_IQ = 'bcr_iq_v1';
   let docProgress = JSON.parse(localStorage.getItem(LS_DOC) || '{}');
   let cardProgress = JSON.parse(localStorage.getItem(LS_CARD) || '{}');
   let navOpen = JSON.parse(localStorage.getItem(LS_NAV) || '{}');
   let pathProgress = JSON.parse(localStorage.getItem(LS_PATH) || '{}');
+  let iqProgress = JSON.parse(localStorage.getItem(LS_IQ) || '{}');
   let pathStrict = localStorage.getItem(LS_PATH + '_strict') === '1';
 
   function saveDoc() { localStorage.setItem(LS_DOC, JSON.stringify(docProgress)); }
   function saveCard() { localStorage.setItem(LS_CARD, JSON.stringify(cardProgress)); }
   function saveNav() { localStorage.setItem(LS_NAV, JSON.stringify(navOpen)); }
   function savePath() { localStorage.setItem(LS_PATH, JSON.stringify(pathProgress)); localStorage.setItem(LS_PATH + '_strict', pathStrict ? '1' : '0'); }
+  function saveIQ() { localStorage.setItem(LS_IQ, JSON.stringify(iqProgress)); }
 
   // ---------- markdown 渲染 ----------
   marked.setOptions({ gfm: true, breaks: false });
@@ -48,7 +51,7 @@
   }
 
   function escapeHtml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function renderMD(md) {
@@ -114,6 +117,7 @@
     const m = hash.match(/^#\/(doc|cards)\/(.+)$/);
     if (hash === '#/home' || hash === '') { currentDocId = null; renderHome(); }
     else if (hash === '#/path') { currentDocId = null; renderPath(); }
+    else if (hash === '#/interview') { currentDocId = null; renderInterview(); }
     else if (hash.startsWith('#/search/')) { currentDocId = null; renderSearch(decodeURIComponent(hash.slice(9))); }
     else if (m) { currentDocId = m[2]; renderDoc(m[2], m[1] === 'cards'); }
     else { currentDocId = null; renderHome(); }
@@ -123,10 +127,20 @@
 
   // ---------- 侧栏 ----------
   function renderNav() {
+    const iqKnown = (window.__INTERVIEW__ ? window.__INTERVIEW__.questions : []).filter(q => iqProgress[q.id] === 'known').length;
+    const iqTotal = (window.__INTERVIEW__ ? window.__INTERVIEW__.questions : []).length;
     let html = `<div class="nav-chapter path-entry">
       <div class="nav-chapter-head ${location.hash === '#/path' ? 'path-active' : ''}" data-go-path="1">
         <span class="num">GO</span>
         <span>学习路径</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+    <div class="nav-chapter path-entry iq-entry">
+      <div class="nav-chapter-head ${location.hash === '#/interview' ? 'path-active' : ''}" data-go-interview="1">
+        <span class="num">Q</span>
+        <span>面试中心</span>
+        <span class="iq-nav-count" id="iqNavCount">${iqKnown}/${iqTotal}</span>
         <span class="arrow">→</span>
       </div>
     </div>`;
@@ -179,6 +193,8 @@
     });
     const goPath = nav.querySelector('[data-go-path]');
     if (goPath) goPath.onclick = () => { location.hash = '#/path'; };
+    const goIQ = nav.querySelector('[data-go-interview]');
+    if (goIQ) goIQ.onclick = () => { location.hash = '#/interview'; };
   }
 
   // ---------- 学习路径 ----------
@@ -361,19 +377,34 @@
       </div>`;
     })();
 
+    const iqCta = (() => {
+      const IQD = window.__INTERVIEW__;
+      if (!IQD || !IQD.questions.length) return '';
+      const known = IQD.questions.filter(q => iqProgress[q.id] === 'known').length;
+      const pct = Math.round(known / IQD.questions.length * 100);
+      return `<div class="path-cta iq-cta" data-go-interview="1">
+        <div class="cta-left">
+          <div class="cta-title">🧠 面试中心 · ${IQD.questions.length} 道题</div>
+          <div class="cta-sub">${IQD.categories.length} 个主题的知识点自测：${IQD.categories.map(c => c.name.split(' ')[0]).join(' / ')}。已掌握 ${known} 道（${pct}%）</div>
+        </div>
+        <button class="btn primary big">开始自测</button>
+      </div>`;
+    })();
+
     main.innerHTML = `<div class="main-inner">
       <div class="home-hero">
-        <h1>⛓️ 区块链开发工程师 · 系统课程复习中心</h1>
-        <p>老师的作业要求 + 我的全部作业答案与学习笔记，按课程阶段整理。适合快速复习，也可以直接照着学习。</p>
+        <h1>⛓️ 共识笔记 · 区块链开发学习中心</h1>
+        <p>四条学习阶段 + 四个项目拆解 + 面试题库，按课程阶段整理。适合系统复习，也可以直接照着学习。</p>
         <div class="stats">
           <span class="stat-pill">📚 文档 <b>${totalDocs}</b> 篇</span>
-          <span class="stat-pill">🃏 复习卡片 <b>${C.cardCount}</b> 张</span>
+          <span class="stat-pill">🃏 复习卡片 <b>${C.meta.cardCount}</b> 张</span>
+          <span class="stat-pill">🧠 面试题 <b>${(window.__INTERVIEW__ || { questions: [] }).questions.length}</b> 道</span>
           <span class="stat-pill">✅ 已读 <b>${readTotal}</b> 篇</span>
-          <span class="stat-pill">🧠 已掌握 <b>${knownTotal}</b> 张卡片</span>
           <span class="stat-pill">🗓 更新于 ${C.meta.builtAt}</span>
         </div>
       </div>
       ${pathCta}
+      ${iqCta}
       <div class="chapter-grid">${cardsHtml}</div>
     </div>`;
 
@@ -382,6 +413,8 @@
     });
     const cta = main.querySelector('[data-go-path]');
     if (cta) cta.onclick = () => { location.hash = '#/path'; };
+    const iqCtaEl = main.querySelector('[data-go-interview]');
+    if (iqCtaEl) iqCtaEl.onclick = () => { location.hash = '#/interview'; };
   }
 
   // ---------- 文档页 ----------
@@ -575,6 +608,349 @@
     };
   }
 
+  // ---------- 面试中心 ----------
+  const IQ = window.__INTERVIEW__ || { categories: [], questions: [] };
+  const IQ_BY_ID = {};
+  const IQ_NO = {};
+  IQ.questions.forEach((q, i) => { IQ_BY_ID[q.id] = q; IQ_NO[q.id] = i + 1; });
+  const IQ_COLORS = {
+    go: '#0969da', solidity: '#8250df', evm: '#1a7f37', defi: '#9a6700',
+    nft: '#bf3989', backend: '#0550ae', projects: '#cf222e', 'system-design': '#57606a',
+  };
+  const IQ_LV = ['', '基础', '进阶', '深水'];
+  let iqFilter = { cat: 'all', level: 0, state: 'all', kw: '' };
+  let iqSession = null;
+
+  function iqStats() {
+    const total = IQ.questions.length;
+    const known = IQ.questions.filter(q => iqProgress[q.id] === 'known').length;
+    const review = IQ.questions.filter(q => iqProgress[q.id] === 'review').length;
+    return { total, known, review, todo: total - known - review, pct: total ? Math.round(known / total * 100) : 0 };
+  }
+
+  function iqFiltered() {
+    const kw = iqFilter.kw.trim().toLowerCase();
+    return IQ.questions.filter(q => {
+      if (iqFilter.cat !== 'all' && q.cat !== iqFilter.cat) return false;
+      if (iqFilter.level && q.level !== iqFilter.level) return false;
+      const st = iqProgress[q.id] || 'todo';
+      if (iqFilter.state !== 'all' && st !== iqFilter.state) return false;
+      if (kw) {
+        const hay = (q.q + ' ' + q.tags.join(' ') + ' ' + q.catName + ' ' + q.a).toLowerCase();
+        if (!hay.includes(kw)) return false;
+      }
+      return true;
+    });
+  }
+
+  function iqCardHtml(q) {
+    const st = iqProgress[q.id] || 'todo';
+    const stTag = st === 'known' ? '<span class="iq-st known">已掌握</span>'
+      : st === 'review' ? '<span class="iq-st review">待复习</span>' : '';
+    return `<div class="iq-card ${st}" data-qid="${q.id}">
+      <div class="iq-q" data-toggle="1">
+        <span class="iq-num">${IQ_NO[q.id]}</span>
+        <span class="iq-qtext">${escapeHtml(q.q)}</span>
+        <span class="iq-badges">
+          <span class="iq-lv lv-${q.level}">${IQ_LV[q.level]}</span>${stTag}
+        </span>
+        <span class="iq-hint">展开 ▾</span>
+      </div>
+      <div class="iq-a"></div>
+    </div>`;
+  }
+
+  function iqExpandCard(card) {
+    const q = IQ_BY_ID[card.dataset.qid];
+    if (!q) return;
+    const aEl = card.querySelector('.iq-a');
+    if (!aEl.dataset.rendered) {
+      const { html } = renderMD(q.a);
+      aEl.innerHTML = `<div class="iq-tags">${q.tags.map(t => `<span class="iq-tag">${escapeHtml(t)}</span>`).join('')}</div>
+        ${html}
+        <div class="iq-actions">
+          <button class="btn small" data-set="known">🧠 已掌握</button>
+          <button class="btn small" data-set="review">🔁 再看</button>
+          <button class="btn small" data-set="clear">清除</button>
+        </div>`;
+      aEl.dataset.rendered = '1';
+      aEl.querySelectorAll('[data-set]').forEach(btn => {
+        btn.onclick = e => {
+          e.stopPropagation();
+          iqSetState(q.id, btn.dataset.set);
+          card.classList.toggle('known', btn.dataset.set === 'known');
+          card.classList.toggle('review', btn.dataset.set === 'review');
+          const badge = card.querySelector('.iq-st');
+          if (badge) badge.remove();
+          if (btn.dataset.set !== 'clear') {
+            const span = document.createElement('span');
+            span.className = 'iq-st ' + (btn.dataset.set === 'known' ? 'known' : 'review');
+            span.textContent = btn.dataset.set === 'known' ? '已掌握' : '待复习';
+            card.querySelector('.iq-badges').appendChild(span);
+          }
+        };
+      });
+    }
+    card.classList.add('open');
+    card.querySelector('.iq-hint').textContent = '收起 ▴';
+  }
+
+  function iqCollapseCard(card) {
+    card.classList.remove('open');
+    card.querySelector('.iq-hint').textContent = '展开 ▾';
+  }
+
+  function iqSetState(qid, v) {
+    if (v === 'clear') delete iqProgress[qid]; else iqProgress[qid] = v;
+    saveIQ();
+    const s = iqStats();
+    const el = document.getElementById('iqProgressText');
+    if (el) el.innerHTML = `已掌握 <b>${s.known}</b> / ${s.total} 道 · 待复习 <b>${s.review}</b> 道`;
+    const bar = document.getElementById('iqProgressBar');
+    if (bar) bar.style.width = s.pct + '%';
+    const navCount = document.getElementById('iqNavCount');
+    if (navCount) navCount.textContent = s.known + '/' + s.total;
+    const pctEl = document.querySelector('.iq-big-num');
+    if (pctEl) pctEl.innerHTML = s.pct + '<span>%</span>';
+  }
+
+  function renderInterview() {
+    const s = iqStats();
+    const catChips = [{ id: 'all', name: '全部', count: s.total }, ...IQ.categories]
+      .map(c => `<button class="iq-chip ${iqFilter.cat === c.id ? 'active' : ''}" data-cat="${c.id}">
+        ${c.id === 'all' ? '' : `<span class="iq-dot" style="background:${IQ_COLORS[c.id] || '#57606a'}"></span>`}${c.name}
+        <span class="iq-chip-n">${c.count}</span></button>`).join('');
+    const lvChips = [[0, '全部'], [1, '基础'], [2, '进阶'], [3, '深水']]
+      .map(([v, l]) => `<button class="iq-chip sm ${iqFilter.level === v ? 'active' : ''}" data-lv="${v}">${l}</button>`).join('');
+    const stChips = [['all', '全部'], ['todo', '未掌握'], ['known', '已掌握'], ['review', '待复习']]
+      .map(([v, l]) => `<button class="iq-chip sm ${iqFilter.state === v ? 'active' : ''}" data-st="${v}">${l}</button>`).join('');
+
+    main.innerHTML = `<div class="main-inner iq-wrap">
+      <div class="iq-hero">
+        <div class="iq-hero-left">
+          <h1>🧠 面试中心</h1>
+          <p>覆盖课程全部重要知识点的自测题库。先自己回答，再展开对照；标记「已掌握」的会记在本地。</p>
+        </div>
+        <div class="iq-hero-right">
+          <div class="iq-ring-wrap">
+            <div class="iq-big-num">${s.pct}<span>%</span></div>
+            <div class="iq-ring-label">掌握率</div>
+          </div>
+        </div>
+      </div>
+      <div class="iq-progress-row">
+        <div class="iq-progress-bar"><div id="iqProgressBar" style="width:${s.pct}%"></div></div>
+        <span id="iqProgressText">已掌握 <b>${s.known}</b> / ${s.total} 道 · 待复习 <b>${s.review}</b> 道</span>
+      </div>
+
+      <div class="iq-toolbar">
+        <div class="iq-chip-row" id="iqCatRow">${catChips}</div>
+        <div class="iq-toolbar-2">
+          <div class="iq-chip-row">${lvChips}</div>
+          <span class="iq-sep"></span>
+          <div class="iq-chip-row">${stChips}</div>
+          <span style="flex:1"></span>
+          <input class="iq-search" id="iqSearch" type="text" placeholder="搜题目 / 标签…" value="${escapeHtml(iqFilter.kw)}">
+          <button class="btn small primary" id="iqMockBtn">🎲 模拟面试</button>
+        </div>
+      </div>
+
+      <div id="iqList"></div>
+    </div>`;
+
+    renderIQList();
+
+    main.querySelectorAll('[data-cat]').forEach(el => {
+      el.onclick = () => { iqFilter.cat = el.dataset.cat; renderInterview(); };
+    });
+    main.querySelectorAll('[data-lv]').forEach(el => {
+      el.onclick = () => { iqFilter.level = +el.dataset.lv; renderInterview(); };
+    });
+    main.querySelectorAll('[data-st]').forEach(el => {
+      el.onclick = () => { iqFilter.state = el.dataset.st; renderInterview(); };
+    });
+    const kw = document.getElementById('iqSearch');
+    let kwTimer;
+    kw.oninput = () => {
+      clearTimeout(kwTimer);
+      kwTimer = setTimeout(() => {
+        iqFilter.kw = kw.value;
+        renderIQList();
+      }, 220);
+    };
+    kw.onkeydown = e => { if (e.key === 'Enter') { clearTimeout(kwTimer); iqFilter.kw = kw.value; renderIQList(); } };
+    document.getElementById('iqMockBtn').onclick = () => startMock(10);
+  }
+
+  function renderIQList() {
+    const list = iqFiltered();
+    const box = document.getElementById('iqList');
+    if (!box) return;
+    if (!list.length) {
+      box.innerHTML = `<div class="iq-empty">没有匹配的题目 🤷 试试换个关键词或清除筛选</div>`;
+      return;
+    }
+    const byCat = {};
+    list.forEach(q => { (byCat[q.cat] = byCat[q.cat] || []).push(q); });
+
+    const groups = IQ.categories.filter(c => byCat[c.id]).map(c => {
+      const qs = byCat[c.id];
+      const known = qs.filter(q => iqProgress[q.id] === 'known').length;
+      return `<section class="iq-group">
+        <div class="iq-group-head">
+          <span class="iq-dot" style="background:${IQ_COLORS[c.id] || '#57606a'}"></span>
+          <h2>${c.name}</h2>
+          <span class="iq-group-desc">${escapeHtml(c.desc)}</span>
+          <span class="iq-group-count">${known} / ${qs.length}</span>
+        </div>
+        <div class="iq-list">${qs.map(iqCardHtml).join('')}</div>
+      </section>`;
+    }).join('');
+
+    box.innerHTML = `<div class="iq-list-head">
+        <span>共 <b>${list.length}</b> 道题</span>
+        <span style="flex:1"></span>
+        <button class="btn small" id="iqExpandAll">展开可见</button>
+        <button class="btn small" id="iqCollapseAll">全部收起</button>
+      </div>${groups}`;
+
+    box.querySelectorAll('.iq-card').forEach(card => {
+      card.querySelector('[data-toggle]').onclick = () => {
+        if (card.classList.contains('open')) iqCollapseCard(card); else iqExpandCard(card);
+      };
+    });
+    document.getElementById('iqExpandAll').onclick = () => {
+      box.querySelectorAll('.iq-card').forEach(iqExpandCard);
+      toast('已展开，慢慢看 👀');
+    };
+    document.getElementById('iqCollapseAll').onclick = () => {
+      box.querySelectorAll('.iq-card').forEach(iqCollapseCard);
+    };
+  }
+
+  // ---- 模拟面试 ----
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+
+  function startMock(n) {
+    const pool = iqFiltered();
+    if (!pool.length) { toast('当前筛选下没有题目'); return; }
+    iqSession = { list: shuffle(pool.slice()).slice(0, Math.min(n, pool.length)), idx: 0, revealed: false, known: 0, review: 0 };
+    openMock();
+  }
+
+  function openMock() {
+    let el = document.getElementById('iqMock');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'iqMock';
+      el.className = 'iq-mock';
+      document.body.appendChild(el);
+    }
+    el.classList.add('show');
+    document.body.classList.add('iq-mock-open');
+    renderMock();
+  }
+
+  function closeMock() {
+    const el = document.getElementById('iqMock');
+    if (el) el.classList.remove('show');
+    document.body.classList.remove('iq-mock-open');
+    iqSession = null;
+  }
+
+  function renderMock() {
+    const el = document.getElementById('iqMock');
+    if (!el || !iqSession) return;
+    const s = iqSession;
+
+    if (s.idx >= s.list.length) {
+      const total = s.list.length;
+      const score = Math.round(s.known / total * 100);
+      el.innerHTML = `<div class="iqm-inner iqm-done">
+        <div class="iqm-done-emoji">${score >= 80 ? '🎉' : score >= 50 ? '💪' : '📚'}</div>
+        <h2>本轮 ${total} 题完成</h2>
+        <div class="iqm-score">${score}<span>%</span></div>
+        <div class="iqm-done-row">
+          <span class="stat-pill">🧠 会了 <b>${s.known}</b></span>
+          <span class="stat-pill">🔁 要复习 <b>${s.review}</b></span>
+          <span class="stat-pill">⏭ 跳过 <b>${total - s.known - s.review}</b></span>
+        </div>
+        <p class="iqm-done-tip">${score >= 80 ? '状态不错，可以挑战更难的题或者去复习项目拆解。' : score >= 50 ? '基本掌握，把「要复习」的那几道再刷一遍。' : '别急，先回到对应章节把笔记读一遍再来。'}</p>
+        <div class="iqm-done-btns">
+          <button class="btn primary" data-mock="again">再来一轮</button>
+          <button class="btn" data-mock="close">返回题库</button>
+        </div>
+      </div>`;
+      el.querySelector('[data-mock="again"]').onclick = () => startMock(s.list.length >= 10 ? 10 : s.list.length);
+      el.querySelector('[data-mock="close"]').onclick = closeMock;
+      return;
+    }
+
+    const q = s.list[s.idx];
+    const st = iqProgress[q.id] || 'todo';
+    el.innerHTML = `<div class="iqm-inner">
+      <div class="iqm-head">
+        <span class="iqm-progress">第 <b>${s.idx + 1}</b> / ${s.list.length} 题</span>
+        <div class="iqm-bar"><div style="width:${s.idx / s.list.length * 100}%"></div></div>
+        ${st === 'known' ? '<span class="iqm-flag">已掌握</span>' : st === 'review' ? '<span class="iqm-flag review">待复习</span>' : ''}
+        <button class="iqm-close" data-mock="close" title="退出（Esc）">✕</button>
+      </div>
+      <div class="iqm-body">
+        <div class="iqm-meta">
+          <span class="iq-dot" style="background:${IQ_COLORS[q.cat] || '#57606a'}"></span>
+          <span>${q.catName}</span>
+          <span class="iq-lv lv-${q.level}">${IQ_LV[q.level]}</span>
+          ${q.tags.slice(0, 3).map(t => `<span class="iq-tag">${escapeHtml(t)}</span>`).join('')}
+        </div>
+        <h2 class="iqm-q">${escapeHtml(q.q)}</h2>
+        ${s.revealed
+          ? `<div class="iqm-a">${renderMD(q.a).html}</div>`
+          : `<div class="iqm-tip">先在脑子里过一遍答案，能讲出 70% 就算过。再点「显示答案」对照。</div>`}
+      </div>
+      <div class="iqm-foot">
+        ${s.revealed
+          ? `<button class="btn small" data-mock="known">🧠 会了</button>
+             <button class="btn small" data-mock="review">🔁 要复习</button>
+             <span style="flex:1"></span>
+             <button class="btn primary" data-mock="next">下一题 →</button>`
+          : `<button class="btn primary big" data-mock="reveal">显示答案（空格）</button>
+             <button class="btn small" data-mock="skip">跳过</button>`}
+      </div>
+    </div>`;
+
+    el.querySelectorAll('[data-mock]').forEach(btn => {
+      btn.onclick = () => {
+        const act = btn.dataset.mock;
+        if (act === 'close') return closeMock();
+        if (act === 'reveal') { iqSession.revealed = true; return renderMock(); }
+        if (act === 'skip' || act === 'next') { iqSession.idx++; iqSession.revealed = false; return renderMock(); }
+        if (act === 'known' || act === 'review') {
+          iqSetState(q.id, act);
+          if (act === 'known') iqSession.known++; else iqSession.review++;
+          iqSession.idx++; iqSession.revealed = false;
+          return renderMock();
+        }
+      };
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    const el = document.getElementById('iqMock');
+    if (!el || !el.classList.contains('show') || !iqSession) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeMock(); return; }
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      if (!iqSession.revealed) { iqSession.revealed = true; renderMock(); }
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      iqSession.idx++; iqSession.revealed = false; renderMock();
+    }
+  });
+
   // ---------- 搜索 ----------
   function renderSearch(q) {
     q = q.trim();
@@ -631,11 +1007,12 @@
 
   // ---------- 重置 ----------
   document.getElementById('resetBtn').onclick = () => {
-    if (confirm('确定清空所有阅读进度、卡片掌握与学习路径记录吗？')) {
+    if (confirm('确定清空所有阅读进度、卡片掌握、面试题标记与学习路径记录吗？')) {
       localStorage.removeItem(LS_DOC);
       localStorage.removeItem(LS_CARD);
       localStorage.removeItem(LS_PATH);
-      docProgress = {}; cardProgress = {}; pathProgress = {};
+      localStorage.removeItem(LS_IQ);
+      docProgress = {}; cardProgress = {}; pathProgress = {}; iqProgress = {};
       toast('进度已重置');
       route();
     }
