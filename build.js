@@ -8,6 +8,20 @@ const HW = process.env.HW_DIR || '/Users/cnmz/Study/HomeworkList';
 const ANS = process.env.ANS_DIR || '/Users/cnmz/Projects/homeWork';
 const OUT = path.join(__dirname, 'js', 'content.js');
 
+// 老师任务书读取：优先 HW_DIR，缺失时回落到 homeWork/_teacher/（HW 原目录已不在本机）
+function readTeacher(file) {
+  if (fs.existsSync(file)) return fs.readFileSync(file, 'utf8');
+  const fallback = path.join(ANS, '_teacher', path.basename(file));
+  if (fs.existsSync(fallback)) {
+    if (!readTeacher._warned) {
+      console.warn(`[warn] HW 目录缺失，老师任务书回落到 ${fallback}`);
+      readTeacher._warned = true;
+    }
+    return fs.readFileSync(fallback, 'utf8');
+  }
+  throw new Error(`老师任务书找不到：${file}（回落路径也不存在）`);
+}
+
 // ---------- 内容清单（按课程 5 大阶段组织） ----------
 const chapters = [
   {
@@ -148,35 +162,42 @@ const chapters = [
     groups: [
       { name: '拆解方法', docs: [
         { title: '🧩 项目拆解模板（三大项目通用）', inline: 'projectTodo', lang: 'md' },
-        { title: '📊 四项目对照总览：一条交易系统的四个切面（复盘用）', file: 'backup/projectBreakdown/overview-four-projects.md', lang: 'md' },
+        { title: '📊 四项目对照总览：一条交易系统的四个切面（复盘用）', file: 'projectBreakdown/overview-four-projects.md', lang: 'md' },
+        { title: '⚡ 四项目速查卡：每项目一页（定位 · 三个亮点 · 三个风险 · 追问预案）', file: 'projectBreakdown/cheatsheet-four-projects.md', lang: 'md' },
       ]},
       { name: 'Pledge · 固定利率借贷', docs: [
-        { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'backup/projectBreakdown/pledge-breakdown.md', lang: 'md' },
-        { title: 'Pledge 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/pledge-study-plan.md', lang: 'md' },
-        { title: 'Pledge 拆解结果：架构图 · 业务流程 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/pledge-breakdown-result.md', lang: 'md' },
+        { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'projectBreakdown/pledge-breakdown.md', lang: 'md' },
+        { title: 'Pledge 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/pledge-study-plan.md', lang: 'md' },
+        { title: 'Pledge 拆解结果：架构图 · 业务流程 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/pledge-breakdown-result.md', lang: 'md' },
       ]},
       { name: 'EasySwap · NFT 链上订单簿', docs: [
-        { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'backup/projectBreakdown/easyswap-breakdown.md', lang: 'md' },
-        { title: 'EasySwap 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/easyswap-study-plan.md', lang: 'md' },
-        { title: 'EasySwap 拆解结果：架构图 · 订单生命周期 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/easyswap-breakdown-result.md', lang: 'md' },
-        { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'backup/projectBreakdown/red-black-tree.md', lang: 'md' },
+        { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'projectBreakdown/easyswap-breakdown.md', lang: 'md' },
+        { title: 'EasySwap 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/easyswap-study-plan.md', lang: 'md' },
+        { title: 'EasySwap 拆解结果：架构图 · 订单生命周期 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/easyswap-breakdown-result.md', lang: 'md' },
+        { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'projectBreakdown/red-black-tree.md', lang: 'md' },
       ]},
       { name: 'MetaNode · 永续合约 DEX', docs: [
-        { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'backup/projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
-        { title: 'MetaNode 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/metanode-perp-study-plan.md', lang: 'md' },
-        { title: 'MetaNode 拆解结果：两数账本 · 交易四步 · 风控清算 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/metanode-perp-breakdown-result.md', lang: 'md' },
+        { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
+        { title: 'MetaNode 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/metanode-perp-study-plan.md', lang: 'md' },
+        { title: 'MetaNode 拆解结果：两数账本 · 交易四步 · 风控清算 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/metanode-perp-breakdown-result.md', lang: 'md' },
       ]},
       { name: 'market-match · 撮合引擎', docs: [
-        { title: '撮合引擎全景拆解：DB 定序 → 订单簿 → 撮合分派 → 快照恢复', file: 'backup/projectBreakdown/market-match-breakdown.md', lang: 'md' },
-        { title: '撮合引擎学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'backup/projectBreakdown/market-match-study-plan.md', lang: 'md' },
-        { title: '撮合引擎拆解结果：DB as WAL · 三条撮合铁律 · 单写者并发 · 审计发现（可直接照着讲的答卷）', file: 'backup/projectBreakdown/market-match-breakdown-result.md', lang: 'md' },
+        { title: '撮合引擎全景拆解：DB 定序 → 订单簿 → 撮合分派 → 快照恢复', file: 'projectBreakdown/market-match-breakdown.md', lang: 'md' },
+        { title: '撮合引擎学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/market-match-study-plan.md', lang: 'md' },
+        { title: '撮合引擎拆解结果：DB as WAL · 三条撮合铁律 · 单写者并发 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/market-match-breakdown-result.md', lang: 'md' },
       ]},
     ],
   },
 ];
 
 // ---------- 工具函数 ----------
-function read(f) { return fs.readFileSync(path.join(ANS, f), 'utf8'); }
+// 去掉 md 顶部的 YAML frontmatter（Obsidian 的 cssclasses 等本地配置，不该出现在网页上）
+function stripFrontmatter(s) {
+  const m = s.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+  if (m && /^[A-Za-z_][\w-]*\s*:/m.test(m[1])) return s.slice(m[0].length).replace(/^\s*\n/, '');
+  return s;
+}
+function read(f) { return stripFrontmatter(fs.readFileSync(path.join(ANS, f), 'utf8')); }
 function slug(s) { return s; }
 
 // 从 md 抽取 Q&A 卡片：匹配 "## 1. xxx？" / "### 2、xxx？" 之类的编号标题
@@ -399,20 +420,20 @@ for (const ch of chapters) {
   const tDoc = {
     id: tid, chapter: ch.id, group: '老师要求', title: '作业要求（老师的原始任务书）',
     isTeacher: true, lang: 'md', qa: false,
-    content: fs.readFileSync(ch.teacherFile, 'utf8'),
+    content: readTeacher(ch.teacherFile),
   };
   ch.docs.unshift(tDoc);
   docIndex.push(tDoc);
 }
 
 // ---------- 面试题库 ----------
-// 源文件：backup/interview/*.md
+// 源文件：interview/*.md
 //   # 分类名
 //   > 分类说明
 //   ## 题目？
 //   > 难度(1-3) | 标签, 标签
 //   答案 markdown ...
-const INTERVIEW_DIR = path.join(ANS, 'backup/interview');
+const INTERVIEW_DIR = path.join(ANS, 'interview');
 const INTERVIEW_OUT = path.join(__dirname, 'js', 'interview.js');
 
 function parseInterview() {
