@@ -8,18 +8,23 @@ const HW = process.env.HW_DIR || '/Users/cnmz/Study/HomeworkList';
 const ANS = process.env.ANS_DIR || '/Users/cnmz/Projects/homeWork';
 const OUT = path.join(__dirname, 'js', 'content.js');
 
-// 老师任务书读取：优先 HW_DIR，缺失时回落到 homeWork/_teacher/（HW 原目录已不在本机）
-function readTeacher(file) {
+// 老师任务书读取：优先 HW_DIR → homeWork/_teacher/ → 站点仓库 sources/teacher/<章节id>.md
+function readTeacher(file, chId) {
   if (fs.existsSync(file)) return fs.readFileSync(file, 'utf8');
-  const fallback = path.join(ANS, '_teacher', path.basename(file));
-  if (fs.existsSync(fallback)) {
-    if (!readTeacher._warned) {
-      console.warn(`[warn] HW 目录缺失，老师任务书回落到 ${fallback}`);
-      readTeacher._warned = true;
+  const fallbacks = [
+    path.join(ANS, '_teacher', path.basename(file)),
+    path.join(__dirname, 'sources', 'teacher', `${chId}.md`),
+  ];
+  for (const fallback of fallbacks) {
+    if (fs.existsSync(fallback)) {
+      if (!readTeacher._warned) {
+        console.warn(`[warn] HW 目录缺失，老师任务书回落到 ${fallback}`);
+        readTeacher._warned = true;
+      }
+      return fs.readFileSync(fallback, 'utf8');
     }
-    return fs.readFileSync(fallback, 'utf8');
   }
-  throw new Error(`老师任务书找不到：${file}（回落路径也不存在）`);
+  throw new Error(`老师任务书找不到：${file}（两个回落路径都不存在）`);
 }
 
 // ---------- 内容清单（按课程 5 大阶段组织） ----------
@@ -157,34 +162,24 @@ const chapters = [
     num: '05',
     title: '项目拆解',
     weeks: 6,
-    summary: 'Pledge 固定利率借贷 / NFT Market / 永续合约三大项目：从业务角度理解合约、后端与前端的协作与资金流。',
+    summary: '四个项目（Pledge / EasySwap / MetaNode 永续 / market-match），每个项目两份文档：合约拆解学习笔记 + 项目拆解文档。',
     teacherFile: path.join(HW, '05.项目拆解.md'),
     groups: [
-      { name: '拆解方法', docs: [
-        { title: '🧩 项目拆解模板（三大项目通用）', inline: 'projectTodo', lang: 'md' },
-        { title: '📊 四项目对照总览：一条交易系统的四个切面（复盘用）', file: 'projectBreakdown/overview-four-projects.md', lang: 'md' },
-        { title: '⚡ 四项目速查卡：每项目一页（定位 · 三个亮点 · 三个风险 · 追问预案）', file: 'projectBreakdown/cheatsheet-four-projects.md', lang: 'md' },
-      ]},
       { name: 'Pledge · 固定利率借贷', docs: [
-        { title: 'Pledge 全景拆解：业务定位 → 状态机 → 审计视角（含本地复现）', file: 'projectBreakdown/pledge-breakdown.md', lang: 'md' },
-        { title: 'Pledge 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/pledge-study-plan.md', lang: 'md' },
-        { title: 'Pledge 拆解结果：架构图 · 业务流程 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/pledge-breakdown-result.md', lang: 'md' },
+        { title: 'Pledge 合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-Pledge/Pledge合约拆解学习笔记.md', lang: 'md' },
+        { title: 'Pledge 项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-Pledge/Pledge项目拆解文档.md', lang: 'md' },
       ]},
       { name: 'EasySwap · NFT 链上订单簿', docs: [
-        { title: 'EasySwap NFT Market 全景拆解：订单生命周期 → 资金流 → 审计视角', file: 'projectBreakdown/easyswap-breakdown.md', lang: 'md' },
-        { title: 'EasySwap 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/easyswap-study-plan.md', lang: 'md' },
-        { title: 'EasySwap 拆解结果：架构图 · 订单生命周期 · 模块职责 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/easyswap-breakdown-result.md', lang: 'md' },
-        { title: '精读：红黑树价格档位（RedBlackTreeLibrary）', file: 'projectBreakdown/red-black-tree.md', lang: 'md' },
+        { title: 'NFTMarket 合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-NFTMarket/NFTMarket合约拆解学习笔记.md', lang: 'md' },
+        { title: 'NFTMarket（EasySwap）项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-NFTMarket/NFTMarket项目拆解文档.md', lang: 'md' },
       ]},
       { name: 'MetaNode · 永续合约 DEX', docs: [
-        { title: 'MetaNode 永续合约拆解：paper/credit 账本 → 链下撮合上链结算 → 风控', file: 'projectBreakdown/metanode-perp-breakdown.md', lang: 'md' },
-        { title: 'MetaNode 学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/metanode-perp-study-plan.md', lang: 'md' },
-        { title: 'MetaNode 拆解结果：两数账本 · 交易四步 · 风控清算 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/metanode-perp-breakdown-result.md', lang: 'md' },
+        { title: 'MetaNode 永续合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/perpetual-contract/永续合约拆解学习笔记.md', lang: 'md' },
+        { title: 'MetaNode 永续合约项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/perpetual-contract/永续合约项目拆解文档.md', lang: 'md' },
       ]},
       { name: 'market-match · 撮合引擎', docs: [
-        { title: '撮合引擎全景拆解：DB 定序 → 订单簿 → 撮合分派 → 快照恢复', file: 'projectBreakdown/market-match-breakdown.md', lang: 'md' },
-        { title: '撮合引擎学习计划：对照作业要求（含代码阅读顺序、验收标准与追问预案）', file: 'projectBreakdown/market-match-study-plan.md', lang: 'md' },
-        { title: '撮合引擎拆解结果：DB as WAL · 三条撮合铁律 · 单写者并发 · 审计发现（可直接照着讲的答卷）', file: 'projectBreakdown/market-match-breakdown-result.md', lang: 'md' },
+        { title: 'market-match 撮合引擎核心拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/market-match/撮合引擎核心拆解学习笔记.md', lang: 'md' },
+        { title: 'market-match 撮合引擎项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/market-match/撮合引擎项目拆解文档.md', lang: 'md' },
       ]},
     ],
   },
@@ -393,7 +388,7 @@ for (const ch of chapters) {
           '> 待填',
         ].join('\n');
       } else if (d.lang === 'md') {
-        content = read(d.file);
+        content = d.src ? stripFrontmatter(fs.readFileSync(d.src, 'utf8')) : read(d.file);
       } else {
         // 代码文件：包一层代码块，标题取文件内 package/pragma 前的注释也可以，直接渲染
         const code = read(d.file);
@@ -420,7 +415,7 @@ for (const ch of chapters) {
   const tDoc = {
     id: tid, chapter: ch.id, group: '老师要求', title: '作业要求（老师的原始任务书）',
     isTeacher: true, lang: 'md', qa: false,
-    content: readTeacher(ch.teacherFile),
+    content: readTeacher(ch.teacherFile, ch.id),
   };
   ch.docs.unshift(tDoc);
   docIndex.push(tDoc);
@@ -439,7 +434,17 @@ const INTERVIEW_OUT = path.join(__dirname, 'js', 'interview.js');
 function parseInterview() {
   const categories = [];
   const questions = [];
-  if (!fs.existsSync(INTERVIEW_DIR)) return { categories, questions };
+  if (!fs.existsSync(INTERVIEW_DIR)) {
+    // 源 md 目录缺失时，回落到上一次构建的 interview.js（保持 156 题不丢）
+    if (fs.existsSync(INTERVIEW_OUT)) {
+      console.warn(`[warn] ${INTERVIEW_DIR} 缺失，面试题库回落到现有 ${INTERVIEW_OUT}`);
+      const prev = fs.readFileSync(INTERVIEW_OUT, 'utf8')
+        .replace(/^window\.__INTERVIEW__ = /, '').replace(/;\s*$/, '');
+      const payload = JSON.parse(prev);
+      return { categories: payload.categories || [], questions: payload.questions || [] };
+    }
+    return { categories, questions };
+  }
 
   const files = fs.readdirSync(INTERVIEW_DIR).filter(f => f.endsWith('.md')).sort();
   files.forEach(file => {
