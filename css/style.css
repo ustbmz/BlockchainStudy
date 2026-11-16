@@ -708,3 +708,14 @@ body.intro-playing #app{visibility:hidden}
   #intro{display:none}
   body.intro-playing #app{visibility:visible}
 }
+
+/* ---------- mermaid 图 ---------- */
+.md-mermaid {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+  margin: 12px 0;
+  overflow-x: auto;
+  background: #ffffff;
+}
+.md-mermaid svg { max-width: 100%; height: auto; }

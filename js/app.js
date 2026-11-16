@@ -72,6 +72,13 @@
     // 还原公式原文（HTML 转义后放回），交给 KaTeX 渲染
     html = html.replace(/@@MATH(\d+)@@/g, (_, i) => escapeHtml(mathStore[+i]));
     el.innerHTML = html;
+    // mermaid 图：先把代码块换成容器（避免被 hljs 高亮），交给全局观察器渲染
+    el.querySelectorAll('pre > code[class*="language-mermaid"]').forEach(code => {
+      const div = document.createElement('div');
+      div.className = 'md-mermaid';
+      div.textContent = code.textContent;
+      code.parentElement.replaceWith(div);
+    });
     // 标题加 id（用于目录）
     const tocItems = [];
     el.querySelectorAll('h2, h3').forEach(h => {
@@ -96,6 +103,60 @@
     } catch (e) { /* ignore */ }
     return { html: `<div class="md-body">${el.innerHTML}</div>`, toc: tocItems };
   }
+
+  // ---------- mermaid 图渲染 ----------
+  // renderMD 只负责把 ```mermaid 代码块换成 <div class="md-mermaid">；
+  // 真正画图由这里的全局观察器完成：内容插入 DOM 后自动渲染（文档页/卡片/面试答案通用）。
+  let mermaidInited = false;
+  function initMermaid() {
+    if (mermaidInited) return true;
+    if (typeof mermaid === 'undefined') return false;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: {
+        // 贴近 Primer Light 配色
+        fontFamily: '-apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
+        fontSize: '14px',
+        primaryColor: '#dbeafe',
+        primaryBorderColor: '#9ec1e8',
+        primaryTextColor: '#1f2328',
+        secondaryColor: '#f6f8fa',
+        secondaryBorderColor: '#d0d7de',
+        tertiaryColor: '#ffffff',
+        lineColor: '#57606a',
+        edgeLabelBackground: '#ffffff',
+        clusterBkg: '#f6f8fa',
+        clusterBorder: '#d0d7de',
+      },
+      flowchart: { curve: 'basis' },
+    });
+    mermaidInited = true;
+    return true;
+  }
+
+  let mermaidTimer = null;
+  function scheduleMermaid(root) {
+    if (typeof mermaid === 'undefined') return;
+    const pending = root.matches && root.matches('.md-mermaid:not([data-done])')
+      ? [root]
+      : Array.from(root.querySelectorAll ? root.querySelectorAll('.md-mermaid:not([data-done])') : []);
+    if (!pending.length || !initMermaid()) return;
+    clearTimeout(mermaidTimer);
+    mermaidTimer = setTimeout(() => {
+      pending.forEach(n => n.setAttribute('data-done', '1')); // 先标记，防止观察器重复触发
+      mermaid.run({ nodes: pending })
+        .catch(err => console.warn('mermaid 渲染失败：', err));
+    }, 0);
+  }
+
+  new MutationObserver(muts => {
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (n.nodeType === 1) scheduleMermaid(n);
+      }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
 
   function toast(msg) {
     const t = document.getElementById('toast');
