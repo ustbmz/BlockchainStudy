@@ -3,7 +3,10 @@
   'use strict';
   var KEY = 'bcr_intro_v1';
   var intro = document.getElementById('intro');
-  function unlock() { document.body.classList.remove('intro-playing'); }
+  function unlock() {
+    document.body.classList.remove('intro-playing');
+    document.body.classList.add('app-enter');
+  }
   if (!intro) { unlock(); return; }
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       sessionStorage.getItem(KEY)) {
@@ -18,11 +21,12 @@
     sessionStorage.setItem(KEY, '1');
     intro.classList.add('intro-out');
     unlock();
-    setTimeout(function () { intro.remove(); }, 500);
+    // 与 .85s 淡出过渡同步：动画层完全消失后再移除节点
+    setTimeout(function () { intro.remove(); }, 900);
   }
   intro.addEventListener('click', finish);
-  // 动画 4s 播完 + 缓冲后自动收尾
-  setTimeout(finish, 4300);
+  // 动画 2.6s 播完 + 缓冲后自动收尾
+  setTimeout(finish, 2900);
   // 动画进行中就取真实数据填充装载文案（content.js / interview.js 已在前加载）
   try {
     var el = document.getElementById('introLoad');
