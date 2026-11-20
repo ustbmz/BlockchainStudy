@@ -135,18 +135,37 @@
     return true;
   }
 
+  // mermaid.js 2.9MB，按需加载：页面里真的有图才去拉（多数页面没有，零开销）
+  let mermaidLoading = null;
+  function loadMermaid() {
+    if (typeof mermaid !== 'undefined') return Promise.resolve();
+    if (!mermaidLoading) {
+      mermaidLoading = new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'vendor/mermaid.min.js';
+        s.onload = res;
+        s.onerror = () => { mermaidLoading = null; rej(new Error('mermaid.js 加载失败')); };
+        document.head.appendChild(s);
+      });
+    }
+    return mermaidLoading;
+  }
+
   let mermaidTimer = null;
   function scheduleMermaid(root) {
-    if (typeof mermaid === 'undefined') return;
-    const pending = root.matches && root.matches('.md-mermaid:not([data-done])')
+    const selfPending = root.matches && root.matches('.md-mermaid:not([data-done])');
+    const pending = selfPending
       ? [root]
       : Array.from(root.querySelectorAll ? root.querySelectorAll('.md-mermaid:not([data-done])') : []);
-    if (!pending.length || !initMermaid()) return;
+    if (!pending.length) return;
     clearTimeout(mermaidTimer);
     mermaidTimer = setTimeout(() => {
-      pending.forEach(n => n.setAttribute('data-done', '1')); // 先标记，防止观察器重复触发
-      mermaid.run({ nodes: pending })
-        .catch(err => console.warn('mermaid 渲染失败：', err));
+      loadMermaid().then(() => {
+        if (!initMermaid()) return;
+        pending.forEach(n => n.setAttribute('data-done', '1')); // 先标记，防止观察器重复触发
+        mermaid.run({ nodes: pending })
+          .catch(err => console.warn('mermaid 渲染失败：', err));
+      }).catch(err => console.warn(err.message));
     }, 0);
   }
 
@@ -895,10 +914,23 @@
     return a;
   }
 
+  // 计时辅助
+  const fmtMs = ms => {
+    const s = Math.floor(ms / 1000);
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  };
+  let mockTimerInt = null;
+
   function startMock(n) {
     const pool = iqFiltered();
     if (!pool.length) { toast('当前筛选下没有题目'); return; }
-    iqSession = { list: shuffle(pool.slice()).slice(0, Math.min(n, pool.length)), idx: 0, revealed: false, known: 0, review: 0 };
+    // 错题优先：之前标「要复习」的题先抽，剩下从其它题随机补齐
+    const shuffled = shuffle(pool.slice());
+    const wrong = shuffled.filter(q => iqProgress[q.id] === 'review');
+    const rest = shuffled.filter(q => iqProgress[q.id] !== 'review');
+    const list = wrong.slice(0, n).concat(rest.slice(0, Math.max(0, n - wrong.length)));
+    iqSession = { list, idx: 0, revealed: false, known: 0, review: 0,
+      startTs: Date.now(), qTs: Date.now(), times: [], wrongFirst: wrong.length };
     openMock();
   }
 
@@ -916,6 +948,7 @@
   }
 
   function closeMock() {
+    clearInterval(mockTimerInt);
     const el = document.getElementById('iqMock');
     if (el) el.classList.remove('show');
     document.body.classList.remove('iq-mock-open');
@@ -930,6 +963,10 @@
     if (s.idx >= s.list.length) {
       const total = s.list.length;
       const score = Math.round(s.known / total * 100);
+      const elapsed = Date.now() - s.startTs;
+      const answered = s.times.length;
+      const avg = answered ? elapsed / answered : 0;
+      clearInterval(mockTimerInt);
       el.innerHTML = `<div class="iqm-inner iqm-done">
         <div class="iqm-done-emoji">${score >= 80 ? '🎉' : score >= 50 ? '💪' : '📚'}</div>
         <h2>本轮 ${total} 题完成</h2>
@@ -938,6 +975,11 @@
           <span class="stat-pill">🧠 会了 <b>${s.known}</b></span>
           <span class="stat-pill">🔁 要复习 <b>${s.review}</b></span>
           <span class="stat-pill">⏭ 跳过 <b>${total - s.known - s.review}</b></span>
+        </div>
+        <div class="iqm-done-row iqm-time-row">
+          <span class="stat-pill">⏱ 总用时 <b>${fmtMs(elapsed)}</b></span>
+          <span class="stat-pill">平均每题 <b>${fmtMs(avg)}</b></span>
+          ${s.wrongFirst ? `<span class="stat-pill">🎯 优先复考错题 <b>${Math.min(s.wrongFirst, total)}</b> 道</span>` : ''}
         </div>
         <p class="iqm-done-tip">${score >= 80 ? '状态不错，可以挑战更难的题或者去复习项目拆解。' : score >= 50 ? '基本掌握，把「要复习」的那几道再刷一遍。' : '别急，先回到对应章节把笔记读一遍再来。'}</p>
         <div class="iqm-done-btns">
@@ -956,6 +998,7 @@
       <div class="iqm-head">
         <span class="iqm-progress">第 <b>${s.idx + 1}</b> / ${s.list.length} 题</span>
         <div class="iqm-bar"><div style="width:${s.idx / s.list.length * 100}%"></div></div>
+        <span class="iqm-timer" id="iqmTimer">⏱ ${fmtMs(Date.now() - s.startTs)}</span>
         ${st === 'known' ? '<span class="iqm-flag">已掌握</span>' : st === 'review' ? '<span class="iqm-flag review">待复习</span>' : ''}
         <button class="iqm-close" data-mock="close" title="退出（Esc）">✕</button>
       </div>
@@ -982,13 +1025,25 @@
       </div>
     </div>`;
 
+    clearInterval(mockTimerInt);
+    mockTimerInt = setInterval(() => {
+      const t = document.getElementById('iqmTimer');
+      if (t && iqSession) t.textContent = '⏱ ' + fmtMs(Date.now() - iqSession.startTs);
+    }, 1000);
+
     el.querySelectorAll('[data-mock]').forEach(btn => {
       btn.onclick = () => {
         const act = btn.dataset.mock;
         if (act === 'close') return closeMock();
         if (act === 'reveal') { iqSession.revealed = true; return renderMock(); }
-        if (act === 'skip' || act === 'next') { iqSession.idx++; iqSession.revealed = false; return renderMock(); }
+        if (act === 'skip' || act === 'next') {
+          iqSession.times.push(Date.now() - iqSession.qTs);
+          iqSession.qTs = Date.now();
+          iqSession.idx++; iqSession.revealed = false; return renderMock();
+        }
         if (act === 'known' || act === 'review') {
+          iqSession.times.push(Date.now() - iqSession.qTs);
+          iqSession.qTs = Date.now();
           iqSetState(q.id, act);
           if (act === 'known') iqSession.known++; else iqSession.review++;
           iqSession.idx++; iqSession.revealed = false;
