@@ -41,7 +41,7 @@
   const THEMES = [
     { id: 'blue',   name: '蓝·紫（默认）', dot: ['#0969da', '#8250df'], mm: { primaryColor: '#dbeafe', primaryBorderColor: '#9ec1e8' } },
     { id: 'forest', name: '松林',          dot: ['#2b8a3e', '#0ca678'], mm: { primaryColor: '#d3f0da', primaryBorderColor: '#8fc9a3' } },
-    { id: 'ember',  name: '雾蓝（试验）',  dot: ['#38618c', '#5e8ab4'], mm: { primaryColor: '#dde8f2', primaryBorderColor: '#9dbdd8' } },
+    { id: 'ember',  name: '雾蓝',          dot: ['#38618c', '#5e8ab4'], mm: { primaryColor: '#dde8f2', primaryBorderColor: '#9dbdd8' } },
   ];
   function currentThemeId() { return localStorage.getItem(LS_THEME) || 'blue'; }
   document.body.dataset.theme = currentThemeId();
