@@ -762,7 +762,7 @@ body.iq-mock-open { overflow: hidden; }
 /* 动画播放期间隐藏主界面，避免加载前闪现页面内容 */
 body.intro-playing{overflow:hidden}
 body.intro-playing #app{visibility:hidden}
-#intro{position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,#e9eefb 0%,#e9e4f8 100%)}
+#intro{position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 9%,white) 0%,color-mix(in srgb,var(--accent-2) 9%,white) 100%)}
 #intro.intro-out{opacity:0;transform:scale(1.1);transition:opacity .85s ease,transform .85s cubic-bezier(.22,1,.36,1)}
 /* 首页入场：只保留整体淡入，与动画层淡出交叉，位置不动 */
 body.app-enter #app{animation:appIn .7s ease-out both}

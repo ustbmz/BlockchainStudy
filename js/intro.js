@@ -4,7 +4,7 @@
   var KEY = 'bcr_intro_v1';
   var intro = document.getElementById('intro');
   // 进站动画先于主脚本运行：提前应用配色主题，logo/进度条跟随所选配色
-  try { document.body.dataset.theme = localStorage.getItem('bcr_theme_v1') || 'blue'; } catch (e) {}
+  try { document.body.dataset.theme = localStorage.getItem('bcr_theme_v1') || 'ember'; } catch (e) {}
   function unlock() {
     document.body.classList.remove('intro-playing');
     document.body.classList.add('app-enter');

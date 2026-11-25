@@ -39,11 +39,11 @@
   // ---------- 配色方案 ----------
   // blue 为默认（:root）；其余通过 body[data-theme] 覆盖变量，mm 是 mermaid 节点配色
   const THEMES = [
-    { id: 'blue',   name: '蓝·紫（默认）', dot: ['#0969da', '#8250df'], mm: { primaryColor: '#dbeafe', primaryBorderColor: '#9ec1e8' } },
+    { id: 'ember',  name: '雾蓝（默认）',  dot: ['#38618c', '#5e8ab4'], mm: { primaryColor: '#dde8f2', primaryBorderColor: '#9dbdd8' } },
+    { id: 'blue',   name: '蓝·紫',         dot: ['#0969da', '#8250df'], mm: { primaryColor: '#dbeafe', primaryBorderColor: '#9ec1e8' } },
     { id: 'forest', name: '松林',          dot: ['#2b8a3e', '#0ca678'], mm: { primaryColor: '#d3f0da', primaryBorderColor: '#8fc9a3' } },
-    { id: 'ember',  name: '雾蓝',          dot: ['#38618c', '#5e8ab4'], mm: { primaryColor: '#dde8f2', primaryBorderColor: '#9dbdd8' } },
   ];
-  function currentThemeId() { return localStorage.getItem(LS_THEME) || 'blue'; }
+  function currentThemeId() { return localStorage.getItem(LS_THEME) || 'ember'; }
   document.body.dataset.theme = currentThemeId();
 
   function saveDoc() { localStorage.setItem(LS_DOC, JSON.stringify(docProgress)); }
