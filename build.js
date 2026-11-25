@@ -219,6 +219,14 @@ function extractQA(md, level) {
 }
 
 // ---------- 组装 ----------
+// 旧 content 兜底：源文件被清理（如 homeWork 整理）时，沿用上次构建的文档内容
+const oldDocs = (() => {
+  try {
+    const raw = fs.readFileSync(OUT, 'utf8');
+    const old = JSON.parse(raw.replace(/^window\.__CONTENT__ = /, '').replace(/;\s*$/, ''));
+    return Object.fromEntries(old.docs.map(od => [od.title, od.content]));
+  } catch (e) { return {}; }
+})();
 const docIndex = [];
 const allCards = [];
 let idc = 0;
@@ -388,7 +396,16 @@ for (const ch of chapters) {
           '> 待填',
         ].join('\n');
       } else if (d.lang === 'md') {
-        content = d.src ? stripFrontmatter(fs.readFileSync(d.src, 'utf8')) : read(d.file);
+        if (d.src) {
+          content = stripFrontmatter(fs.readFileSync(d.src, 'utf8'));
+        } else if (fs.existsSync(path.join(ANS, d.file))) {
+          content = read(d.file);
+        } else if (oldDocs[d.title]) {
+          content = oldDocs[d.title];
+          console.log(`[reuse] 源文件缺失，沿用上次构建内容：${d.title}`);
+        } else {
+          throw new Error(`找不到源文件且无旧内容可沿用：${d.file}`);
+        }
       } else {
         // 代码文件：包一层代码块，标题取文件内 package/pragma 前的注释也可以，直接渲染
         const code = read(d.file);
