@@ -228,8 +228,10 @@
     C.meta.chapters.forEach(ch => {
       const docIds = ch.groups.reduce((a, g) => a.concat(g.docIds), []);
       const done = docIds.filter(id => docProgress[id]).length;
-      // 默认折叠：只自动展开当前正在阅读的章节（用户点过的章节尊重其选择）
+      // 默认折叠：只自动展开当前正在阅读的章节
+      // 导航进入某章的优先级高于「手动收起」的记忆——从路径/首页跳到文档时必须展开，否则高亮项藏在折叠区里
       const containsCurrent = !!currentDocId && docIds.includes(currentDocId);
+      if (containsCurrent && navOpen[ch.id] === false) { delete navOpen[ch.id]; saveNav(); }
       const open = navOpen[ch.id] !== undefined ? navOpen[ch.id] : containsCurrent;
       html += `<div class="nav-chapter ${open ? '' : 'closed'}" data-ch="${ch.id}">
         <div class="nav-chapter-head" data-toggle="${ch.id}">
@@ -264,6 +266,11 @@
       html += `</div>`;
     });
     nav.innerHTML = html;
+    // 文档阅读态：把高亮项滚进侧栏可视区（block:nearest 只滚侧栏容器，不影响主区）
+    if (currentDocId) {
+      const activeEl = nav.querySelector('.nav-doc.active');
+      if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+    }
     nav.querySelectorAll('[data-toggle]').forEach(el => {
       el.onclick = () => {
         const ch = el.dataset.toggle;
