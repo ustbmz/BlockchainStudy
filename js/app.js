@@ -28,12 +28,23 @@
   const LS_NAV = 'bcr_nav_v1';
   const LS_PATH = 'bcr_path_v1';
   const LS_IQ = 'bcr_iq_v1';
+  const LS_THEME = 'bcr_theme_v1';
   let docProgress = JSON.parse(localStorage.getItem(LS_DOC) || '{}');
   let cardProgress = JSON.parse(localStorage.getItem(LS_CARD) || '{}');
   let navOpen = JSON.parse(localStorage.getItem(LS_NAV) || '{}');
   let pathProgress = JSON.parse(localStorage.getItem(LS_PATH) || '{}');
   let iqProgress = JSON.parse(localStorage.getItem(LS_IQ) || '{}');
   let pathStrict = localStorage.getItem(LS_PATH + '_strict') === '1';
+
+  // ---------- 配色方案 ----------
+  // blue 为默认（:root）；其余通过 body[data-theme] 覆盖变量，mm 是 mermaid 节点配色
+  const THEMES = [
+    { id: 'blue',   name: '蓝·紫（默认）', dot: ['#0969da', '#8250df'], mm: { primaryColor: '#dbeafe', primaryBorderColor: '#9ec1e8' } },
+    { id: 'forest', name: '松林',          dot: ['#2b8a3e', '#0ca678'], mm: { primaryColor: '#d3f0da', primaryBorderColor: '#8fc9a3' } },
+    { id: 'ember',  name: '雾蓝（试验）',  dot: ['#38618c', '#5e8ab4'], mm: { primaryColor: '#dde8f2', primaryBorderColor: '#9dbdd8' } },
+  ];
+  function currentThemeId() { return localStorage.getItem(LS_THEME) || 'blue'; }
+  document.body.dataset.theme = currentThemeId();
 
   function saveDoc() { localStorage.setItem(LS_DOC, JSON.stringify(docProgress)); }
   function saveCard() { localStorage.setItem(LS_CARD, JSON.stringify(cardProgress)); }
@@ -111,15 +122,16 @@
   function initMermaid() {
     if (mermaidInited) return true;
     if (typeof mermaid === 'undefined') return false;
+    const th = THEMES.find(t => t.id === currentThemeId()) || THEMES[0];
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',
       themeVariables: {
-        // 贴近 Primer Light 配色
+        // 贴近 Primer Light 配色（主色随配色方案切换）
         fontFamily: '-apple-system, "Segoe UI", Helvetica, Arial, sans-serif',
         fontSize: '14px',
-        primaryColor: '#dbeafe',
-        primaryBorderColor: '#9ec1e8',
+        primaryColor: th.mm.primaryColor,
+        primaryBorderColor: th.mm.primaryBorderColor,
         primaryTextColor: '#1f2328',
         secondaryColor: '#f6f8fa',
         secondaryBorderColor: '#d0d7de',
@@ -491,7 +503,7 @@
 
     main.innerHTML = `<div class="main-inner">
       <div class="home-hero">
-        <h1><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="vertical-align:-5px;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgHero" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/></linearGradient></defs><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a4 4 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>共识笔记 · 区块链开发学习中心</h1>
+        <h1><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="vertical-align:-5px;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgHero" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse"><stop style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent-2)"/></linearGradient></defs><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a4 4 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>共识笔记 · 区块链开发学习中心</h1>
         <p>四条学习阶段 + 四个项目拆解 + 面试题库，按课程阶段整理。适合系统复习，也可以直接照着学习。</p>
         <div class="home-meta">${metaLine}</div>
       </div>
@@ -1155,6 +1167,43 @@
   };
 
   document.getElementById('buildDate').textContent = '更新于 ' + C.meta.builtAt;
+
+  // ---------- 配色切换器：品牌区的低调图标 + 下拉菜单 ----------
+  (function initPalette() {
+    const box = document.getElementById('palettePicker');
+    if (!box) return;
+    const cur = currentThemeId();
+    // 图标：半实半虚的对比圆，中性的墨色，不抢 brand 视线
+    box.innerHTML = `
+      <button class="pal-btn" title="切换配色" aria-label="切换配色">
+        <svg width="16" height="16" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M19.2782 12.14C21.181 12.4802 22.9856 12.9636 24.6924 13.5899C21.8825 13.6074 19.0791 14.7782 17.0541 17.103L16.8557 17.338C14.0164 20.8063 13.8258 25.7793 16.2839 29.4497L16.2224 29.3375C18.7497 33.9805 23.0519 38.0543 27.499 39.3643C31.0799 40.4191 34.4305 40.6989 37.5178 40.1993L37.5447 40.1811C33.8191 43.092 29.3272 44.553 24.831 44.5656H24.7149L24.2838 44.56C18.9676 44.4356 13.6883 42.2862 9.70805 38.1144L9.37863 37.7609C5.80885 33.8395 4.01583 28.845 4 23.8458V23.7129L4.00633 23.2584C4.09466 19.6851 5.09141 16.1308 6.99642 12.986L6.9277 13.0052C11.431 11.7594 15.5469 11.4727 19.2782 12.14ZM29.8165 32.6328C31.3625 31.897 33.2256 32.2537 34.4485 33.4761L39.4604 38.4855L39.1209 38.8174C39.0934 38.8437 39.0659 38.8699 39.0383 38.8959C35.6475 39.8087 31.8914 39.663 27.7688 38.4486C24.7892 37.5709 22.2332 35.4184 19.9509 32.7704L19.9015 32.7431C22.9258 34.3813 26.604 34.377 29.6249 32.7305L29.8165 32.6328ZM24.7544 2.99994L25.1975 3.00471C30.3656 3.11518 35.5015 5.14197 39.4455 9.08599L34.4485 14.083L34.2924 14.2313C33.0178 15.3811 31.1429 15.6554 29.6249 14.8281L29.3639 14.6908C29.3141 14.6655 29.2642 14.6407 29.2142 14.6163C26.2909 12.9805 23.0341 11.8419 19.4463 11.2003C15.8761 10.5619 11.9853 10.7621 7.77611 11.797C8.35234 10.9768 8.99698 10.1901 9.70805 9.44472L10.0345 9.10999C14.0951 5.03678 19.4211 2.99994 24.7495 2.99994H24.7544Z" fill="currentColor"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M41.549 17.3253L33.6594 21.8806L33.4435 22.0288C33.4435 22.0288 32.7681 22.4814 32.8427 23.4385C32.9079 24.2756 33.5043 24.6288 33.5043 24.6288L41.7348 29.3768C41.7348 29.3768 42.3796 29.7247 43.1811 29.2913C44.0774 28.8066 44.0162 27.8599 44.0162 27.8599V18.7503C44.0162 18.7503 44.0171 18.7404 44.0171 18.7227V18.698C44.0152 18.5127 43.9623 17.8792 43.3674 17.4409C43.02 17.185 42.6771 17.1049 42.3841 17.1049C41.8974 17.1054 41.549 17.3253 41.549 17.3253Z" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="pal-menu">
+        ${THEMES.map(t => `
+          <button class="pal-item ${t.id === cur ? 'active' : ''}" data-theme="${t.id}">
+            <span class="pal-swatch" style="background:linear-gradient(135deg, ${t.dot[0]}, ${t.dot[1]})"></span>
+            <span class="pal-name">${t.name}</span>
+            ${t.id === cur ? '<span class="pal-check">✓</span>' : ''}
+          </button>`).join('')}
+      </div>`;
+    const menu = box.querySelector('.pal-menu');
+    const btn = box.querySelector('.pal-btn');
+    btn.onclick = (e) => { e.stopPropagation(); menu.classList.toggle('open'); };
+    box.querySelectorAll('.pal-item').forEach(el => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        const id = el.dataset.theme;
+        if (id === currentThemeId()) { menu.classList.remove('open'); return; }
+        localStorage.setItem(LS_THEME, id);
+        toast('配色已切换：' + THEMES.find(t => t.id === id).name);
+        location.reload(); // 整页重载，保证 mermaid 图与代码高亮一并刷新
+      };
+    });
+    document.addEventListener('click', () => menu.classList.remove('open'));
+  })();
 
   window.addEventListener('hashchange', route);
   route();

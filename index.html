@@ -22,7 +22,7 @@
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="lgIntro" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/>
+            <stop style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent-2)"/>
           </linearGradient>
         </defs>
         <path class="ring" pathLength="100" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgIntro)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -44,7 +44,7 @@
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="lgBrand" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/>
+              <stop style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent-2)"/>
             </linearGradient>
           </defs>
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgBrand)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -55,6 +55,7 @@
         <div class="brand-title">共识笔记</div>
         <div class="brand-sub">区块链开发学习中心</div>
       </div>
+      <div class="palette-picker" id="palettePicker" title="切换配色"></div>
     </div>
     <div class="search-box">
       <input id="searchInput" type="text" placeholder="搜索笔记 / 代码 / 概念…" autocomplete="off">
