@@ -169,9 +169,9 @@ const chapters = [
         { title: 'Pledge 合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-Pledge/Pledge合约拆解学习笔记.md', lang: 'md' },
         { title: 'Pledge 项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-Pledge/Pledge项目拆解文档.md', lang: 'md' },
       ]},
-      { name: 'EasySwap · NFT 链上订单簿', docs: [
+      { name: 'NFTMarket · NFT 链上订单簿', docs: [
         { title: 'NFTMarket 合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-NFTMarket/NFTMarket合约拆解学习笔记.md', lang: 'md' },
-        { title: 'NFTMarket（EasySwap）项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-NFTMarket/NFTMarket项目拆解文档.md', lang: 'md' },
+        { title: 'NFTMarket 项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/ProjectBreakdown-NFTMarket/NFTMarket项目拆解文档.md', lang: 'md' },
       ]},
       { name: 'MetaNode · 永续合约 DEX', docs: [
         { title: 'MetaNode 永续合约拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/perpetual-contract/永续合约拆解学习笔记.md', lang: 'md' },
