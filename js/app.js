@@ -213,6 +213,7 @@
       <div class="nav-chapter-head ${location.hash === '#/path' ? 'path-active' : ''}" data-go-path="1">
         <span class="num">GO</span>
         <span>学习路径</span>
+        <span class="nav-cnt">${LP.steps.length} 步</span>
         <span class="arrow">→</span>
       </div>
     </div>
@@ -225,13 +226,16 @@
       </div>
     </div>`;
     C.meta.chapters.forEach(ch => {
-      const open = navOpen[ch.id] !== false;
       const docIds = ch.groups.reduce((a, g) => a.concat(g.docIds), []);
       const done = docIds.filter(id => docProgress[id]).length;
+      // 默认折叠：只自动展开当前正在阅读的章节（用户点过的章节尊重其选择）
+      const containsCurrent = !!currentDocId && docIds.includes(currentDocId);
+      const open = navOpen[ch.id] !== undefined ? navOpen[ch.id] : containsCurrent;
       html += `<div class="nav-chapter ${open ? '' : 'closed'}" data-ch="${ch.id}">
         <div class="nav-chapter-head" data-toggle="${ch.id}">
           <span class="num">${ch.num}</span>
           <span>${ch.title}</span>
+          <span class="nav-cnt">${done}/${docIds.length}</span>
           <span class="arrow">▼</span>
         </div>`;
       const tDoc = docsById[ch.teacherDocId];
@@ -240,7 +244,7 @@
         const doneCls = docProgress[tDoc.id] ? 'done' : '';
         html += `<div class="nav-doc teacher-entry ${active} ${doneCls}" data-go="doc/${tDoc.id}">
           <span class="dot"></span>
-          <span style="overflow:hidden;text-overflow:ellipsis">📌 作业要求（老师的任务书）</span>
+          <span style="overflow:hidden;text-overflow:ellipsis">📌 任务书（老师要求）</span>
         </div>`;
       }
       ch.groups.forEach(g => {
@@ -425,23 +429,24 @@
     const totalDocs = C.docs.length;
     const readTotal = Object.keys(docProgress).filter(id => docsById[id]).length;
     const knownTotal = Object.keys(cardProgress).filter(id => cardProgress[id] === 'known').length;
+    const iqCount = (window.__INTERVIEW__ || { questions: [] }).questions.length;
 
+    // 阶段卡瘦身：一条进度条 + 一行状态；零值时不显示数字
     let cardsHtml = C.meta.chapters.map(ch => {
       const st = chapterStats(ch);
       const pct = st.total ? Math.round(st.readCount / st.total * 100) : 0;
-      const cardPct = st.cardTotal ? Math.round(st.known / st.cardTotal * 100) : 0;
+      const statLine = st.readCount > 0
+        ? `已读 <b>${st.readCount}/${st.total}</b> 篇${st.cardTotal ? ` · 卡片掌握 <b>${st.known}/${st.cardTotal}</b> 张` : ''}`
+        : `<span class="cc-empty">还没有进度 · 开始读第一篇后这里会亮起来</span>`;
       return `<div class="chapter-card" data-go="doc/${ch.teacherDocId}">
         <div class="cc-head">
           <span class="cc-num">阶段 ${ch.num}</span>
           <h3>${ch.title}</h3>
-          <span style="margin-left:auto;font-size:12px;color:var(--text-dim)">${ch.weeks} 周</span>
+          <span class="cc-weeks">${ch.weeks} 周</span>
         </div>
         <div class="cc-summary">${ch.summary}</div>
-        <div>
-          <div class="cc-progress-label"><span>文档 ${st.readCount}/${st.total}</span><span>卡片掌握 ${st.known}/${st.cardTotal}</span></div>
-          <div class="progress-bar" style="margin-top:4px"><div style="width:${pct}%"></div></div>
-          <div class="progress-bar" style="margin-top:4px"><div style="width:${cardPct}%;background:linear-gradient(90deg,var(--orange),var(--green))"></div></div>
-        </div>
+        <div class="progress-bar"><div style="width:${pct}%"></div></div>
+        <div class="cc-stat">${statLine}</div>
       </div>`;
     }).join('');
 
@@ -450,10 +455,10 @@
       const st = pathStats();
       return `<div class="path-cta" data-go-path="1">
         <div class="cta-left">
-          <div class="cta-title">🎯 第一次来？跟学习路径走</div>
-          <div class="cta-sub">29 步有序路线 · 每步带资料与预计时长 · ${st.done > 0 ? `你已完成 ${st.done} 步，下一步是「${LP.steps[st.nextIdx].t}」` : '从 Go 基础一路走到项目拆解'}</div>
+          <div class="cta-title">🎯 学习路径</div>
+          <div class="cta-sub">${LP.steps.length} 步有序路线 · 每步带资料与预计时长 · ${st.done > 0 ? `你已完成 ${st.done} 步，下一步是「${LP.steps[st.nextIdx].t}」` : '从 Go 基础一路走到项目拆解'}</div>
         </div>
-        <button class="btn primary big">${st.done > 0 ? '继续学习' : '开始学习'}</button>
+        <button class="btn primary">${st.done > 0 ? '继续学习' : '开始学习'}</button>
       </div>`;
     })();
 
@@ -465,26 +470,26 @@
       return `<div class="path-cta iq-cta" data-go-interview="1">
         <div class="cta-left">
           <div class="cta-title">🧠 面试中心 · ${IQD.questions.length} 道题</div>
-          <div class="cta-sub">${IQD.categories.length} 个主题的知识点自测：${IQD.categories.map(c => c.name.split(' ')[0]).join(' / ')}。已掌握 ${known} 道（${pct}%）</div>
+          <div class="cta-sub">${IQD.categories.length} 大主题自测 · 模拟面试 · 错题本${known > 0 ? ` · 已掌握 ${known}（${pct}%）` : ''}</div>
         </div>
-        <button class="btn primary big">开始自测</button>
+        <button class="btn primary iq-btn">开始自测</button>
       </div>`;
     })();
+
+    // 统计收成一行小字，零值项（已读/掌握）隐藏
+    let metaLine = `📚 <b>${totalDocs}</b> 篇文档 <span class="sep">·</span> 🃏 <b>${C.meta.cardCount}</b> 张卡片 <span class="sep">·</span> 🧠 <b>${iqCount}</b> 道面试题`;
+    if (readTotal > 0) metaLine += ` <span class="sep">·</span> ✅ 已读 <b>${readTotal}</b> 篇`;
+    if (knownTotal > 0) metaLine += ` <span class="sep">·</span> 🃏 卡片已掌握 <b>${knownTotal}</b> 张`;
+    metaLine += ` <span class="sep">·</span> 更新于 ${C.meta.builtAt}`;
 
     main.innerHTML = `<div class="main-inner">
       <div class="home-hero">
         <h1><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="vertical-align:-5px;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lgHero" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#0969da"/><stop offset="1" stop-color="#8250df"/></linearGradient></defs><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a4 4 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="url(#lgHero)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>共识笔记 · 区块链开发学习中心</h1>
         <p>四条学习阶段 + 四个项目拆解 + 面试题库，按课程阶段整理。适合系统复习，也可以直接照着学习。</p>
-        <div class="stats">
-          <span class="stat-pill">📚 文档 <b>${totalDocs}</b> 篇</span>
-          <span class="stat-pill">🃏 复习卡片 <b>${C.meta.cardCount}</b> 张</span>
-          <span class="stat-pill">🧠 面试题 <b>${(window.__INTERVIEW__ || { questions: [] }).questions.length}</b> 道</span>
-          <span class="stat-pill">✅ 已读 <b>${readTotal}</b> 篇</span>
-          <span class="stat-pill">🗓 更新于 ${C.meta.builtAt}</span>
-        </div>
+        <div class="home-meta">${metaLine}</div>
       </div>
-      ${pathCta}
-      ${iqCta}
+      <div class="home-dual">${pathCta}${iqCta}</div>
+      <div class="home-section-label">学习阶段</div>
       <div class="chapter-grid">${cardsHtml}</div>
     </div>`;
 
@@ -504,13 +509,17 @@
     const ch = C.meta.chapters.find(c => c.id === d.chapter);
     const done = !!docProgress[docId];
 
+    const cardCount = d.qa ? (d.cardEnd - d.cardStart) : 0;
     const header = `<div class="doc-header">
         <span class="doc-chapter-tag">阶段 ${ch.num} · ${ch.title}</span>
-        ${d.isTeacher ? '<span class="doc-teacher-tag">老师要求</span>' : ''}
+        ${d.group ? `<span class="doc-group-name">${d.group}</span>` : ''}
+        ${d.isTeacher ? '<span class="doc-teacher-tag">任务书</span>' : ''}
         <div class="doc-actions">
-          ${d.qa ? `<button class="btn ${cardMode ? '' : 'primary'}" data-mode="cards">🃏 复习卡片模式</button>
-                   <button class="btn ${cardMode ? 'primary' : ''}" data-mode="read">📄 原文阅读</button>` : ''}
-          <button class="btn ${done ? 'done-state' : ''}" id="markBtn">${done ? '✅ 已读' : '标记为已读'}</button>
+          ${d.qa ? `<div class="mode-seg">
+                   <span data-mode="read" class="${cardMode ? '' : 'on'}">📄 阅读</span>
+                   <span data-mode="cards" class="${cardMode ? 'on' : ''}">🃏 卡片 ×${cardCount}</span>
+                 </div>` : ''}
+          <button class="btn ${done ? 'btn-done' : ''}" id="markBtn">${done ? '✓ 已读' : '标记为已读'}</button>
         </div>
       </div>
       <h1>${d.title}</h1>`;
@@ -520,7 +529,11 @@
     if (cardMode && d.qa) {
       body = renderCards(d);
     } else {
-      const { html, toc } = renderMD(d.content);
+      // 正文自带的 `# 文档标题` 与头部 H1 重复，剥掉
+      let mdText = d.content;
+      const firstLine = (mdText.split('\n', 1)[0] || '').trim();
+      if (firstLine === '# ' + d.title) mdText = mdText.slice(mdText.indexOf('\n')).replace(/^\s*\n+/, '');
+      const { html, toc } = renderMD(mdText);
       if (toc.length > 2) {
         const links = toc.map(t =>
           `<a href="javascript:void(0)" class="${t.level === 'H3' ? 'l3' : ''}" data-anchor="${t.id}">${t.text}</a>`).join('');
