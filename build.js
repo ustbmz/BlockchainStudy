@@ -181,6 +181,9 @@ const chapters = [
         { title: 'market-match 撮合引擎核心拆解学习笔记', src: '/Users/cnmz/Study/ProjectBreakdown/market-match/撮合引擎核心拆解学习笔记.md', lang: 'md' },
         { title: 'market-match 撮合引擎项目拆解文档', src: '/Users/cnmz/Study/ProjectBreakdown/market-match/撮合引擎项目拆解文档.md', lang: 'md' },
       ]},
+      { name: '整体总结 · 四项目对照', docs: [
+        { title: '拆解项目整体总结', src: '/Users/cnmz/Study/ProjectBreakdown/拆解项目整体总结.md', lang: 'md' },
+      ]},
     ],
   },
 ];
@@ -439,22 +442,35 @@ for (const ch of chapters) {
 }
 
 // ---------- 面试题库 ----------
-// 源文件：interview/*.md
-//   # 分类名
-//   > 分类说明
-//   ## 题目？
-//   > 难度(1-3) | 标签, 标签
-//   答案 markdown ...
-const INTERVIEW_DIR = path.join(ANS, 'interview');
+// 唯一来源：ProjectBreakdown/区块链拆解项目面试题.md
+//   # 标题（忽略）
+//   引言（忽略）
+//   ## 分类名
+//   1. 题目
+//      答案段落（缩进 3 空格，可多段）
+// 换题、加题只改这份 md，然后 node build.js
+const INTERVIEW_SRC = process.env.IQ_SRC || '/Users/cnmz/Study/ProjectBreakdown/区块链拆解项目面试题.md';
 const INTERVIEW_OUT = path.join(__dirname, 'js', 'interview.js');
+
+// 分类名 → 稳定 id + 默认难度 + 兜底说明（改标题不会打乱配色和本地进度）
+const IQ_CATS = {
+  '四套拆解': { id: 'projects', level: 3, desc: '四套拆解各留一个判断，考的是「为什么这么设计」' },
+  '区块链基础': { id: 'chain', level: 1, desc: '链上账本的基本盘：区块、UTXO、共识、双花' },
+  '以太坊交易': { id: 'ethtx', level: 1, desc: '从钱包到上链，交易生命周期里的每个字段' },
+  'Solidity': { id: 'solidity', level: 2, desc: '语言与安全：存储位置、可见性、重入、升级' },
+  '代币标准': { id: 'token', level: 1, desc: 'ERC20 / ERC721 的语义和常见坑' },
+  '签名、预言机与安全': { id: 'security', level: 2, desc: '签名重放、预言机操纵、抢跑与随机数' },
+  '工程': { id: 'eng', level: 2, desc: '本地链、部署、索引、私钥管理' },
+  'Go': { id: 'go', level: 2, desc: '撮合引擎用到的并发与工程细节' },
+};
 
 function parseInterview() {
   const categories = [];
   const questions = [];
-  if (!fs.existsSync(INTERVIEW_DIR)) {
-    // 源 md 目录缺失时，回落到上一次构建的 interview.js（保持 156 题不丢）
+  if (!fs.existsSync(INTERVIEW_SRC)) {
+    // 源文件缺失时沿用上一次构建结果，避免题库被清空
     if (fs.existsSync(INTERVIEW_OUT)) {
-      console.warn(`[warn] ${INTERVIEW_DIR} 缺失，面试题库回落到现有 ${INTERVIEW_OUT}`);
+      console.warn(`[warn] 面试题库源文件缺失：${INTERVIEW_SRC}，沿用现有 ${INTERVIEW_OUT}`);
       const prev = fs.readFileSync(INTERVIEW_OUT, 'utf8')
         .replace(/^window\.__INTERVIEW__ = /, '').replace(/;\s*$/, '');
       const payload = JSON.parse(prev);
@@ -463,56 +479,52 @@ function parseInterview() {
     return { categories, questions };
   }
 
-  const files = fs.readdirSync(INTERVIEW_DIR).filter(f => f.endsWith('.md')).sort();
-  files.forEach(file => {
-    const raw = fs.readFileSync(path.join(INTERVIEW_DIR, file), 'utf8').replace(/\r\n/g, '\n');
-    const catId = file.replace(/^\d+-/, '').replace(/\.md$/, '');
-    const cat = { id: catId, name: catId, desc: '', count: 0 };
-    let cur = null, inCode = false, gotMeta = false, gotDesc = false;
+  const raw = fs.readFileSync(INTERVIEW_SRC, 'utf8').replace(/\r\n/g, '\n');
+  let cat = null, cur = null, inCode = false, descBuf = [];
 
-    const flush = () => {
-      if (cur && cur.q) {
-        cur.a = cur.a.join('\n').trim();
-        questions.push(cur);
-        cat.count++;
-      }
-      cur = null;
-    };
-
-    for (const line of raw.split('\n')) {
-      if (line.trimStart().startsWith('```')) inCode = !inCode;
-      if (!inCode) {
-        if (!cur && /^#\s+/.test(line)) { cat.name = line.replace(/^#\s+/, '').trim(); continue; }
-        const qm = line.match(/^##\s+(.+)$/);
-        if (qm) {
-          flush();
-          cur = { q: qm[1].trim(), a: [], level: 2, tags: [], cat: catId, catName: cat.name };
-          gotMeta = false;
-          continue;
-        }
-        if (cur && !gotMeta) {
-          const mm = line.match(/^>\s*([1-3])\s*\|\s*(.*)$/);
-          if (mm) {
-            cur.level = +mm[1];
-            cur.tags = mm[2].split(/[,，、]/).map(s => s.trim()).filter(Boolean);
-            gotMeta = true;
-            continue;
-          }
-        }
-        if (!cur && !gotDesc && /^>\s+/.test(line)) {
-          cat.desc = line.replace(/^>\s+/, '').trim();
-          gotDesc = true;
-          continue;
-        }
-      }
-      if (cur) cur.a.push(line);
+  const flush = () => {
+    if (cur && cur.q) {
+      // 答案段落在原文里缩进 3~4 空格，交给 markdown 渲染前先去掉这层缩进
+      cur.a = cur.a.map(l => l.replace(/^ {1,4}(?=\S)/, '')).join('\n').trim();
+      questions.push(cur);
+      cat.count++;
     }
-    flush();
-    if (cat.count) categories.push(cat);
-  });
+    cur = null;
+  };
 
-  questions.forEach((q, i) => { q.id = 'q' + (i + 1); });
-  return { categories, questions };
+  raw.split('\n').forEach(line => {
+    if (line.trimStart().startsWith('```')) inCode = !inCode;
+    if (!inCode) {
+      const h2 = line.match(/^##\s+(.+)$/);
+      if (h2) {
+        flush();
+        const name = h2[1].trim();
+        const conf = IQ_CATS[name] || { id: name.toLowerCase().replace(/\s+/g, '-'), level: 2, desc: '' };
+        cat = { id: conf.id, name, desc: '', count: 0, level: conf.level, _desc: conf.desc };
+        descBuf = [];
+        categories.push(cat);
+        return;
+      }
+      const qm = line.match(/^(\d+)[.、]\s+(.+)$/);
+      if (qm && cat) {
+        if (!cat.desc) cat.desc = descBuf.length ? descBuf.join(' ') : (cat._desc || '');
+        flush();
+        cur = {
+          no: +qm[1], q: qm[2].trim(), a: [],
+          level: cat.level, tags: [], cat: cat.id, catName: cat.name,
+        };
+        return;
+      }
+    }
+    if (cur) cur.a.push(line);
+    else if (cat && line.trim() && !line.trim().startsWith('#')) descBuf.push(line.trim());
+  });
+  flush();
+
+  // 题 id 用文档里的原始编号：增删某一题不会让后面的题全部错位
+  questions.forEach(q => { q.id = 'p' + q.no; });
+  categories.forEach(c => { delete c._desc; });
+  return { categories: categories.filter(c => c.count), questions };
 }
 
 const interview = parseInterview();

@@ -32,6 +32,8 @@
   let docProgress = JSON.parse(localStorage.getItem(LS_DOC) || '{}');
   let cardProgress = JSON.parse(localStorage.getItem(LS_CARD) || '{}');
   let navOpen = JSON.parse(localStorage.getItem(LS_NAV) || '{}');
+  // 手动点击选中的章节：只在点过大标题后生效，不随文章变化
+  let navSelId = null;
   let pathProgress = JSON.parse(localStorage.getItem(LS_PATH) || '{}');
   let iqProgress = JSON.parse(localStorage.getItem(LS_IQ) || '{}');
   let pathStrict = localStorage.getItem(LS_PATH + '_strict') === '1';
@@ -245,8 +247,9 @@
       const containsCurrent = !!currentDocId && docIds.includes(currentDocId);
       if (containsCurrent && navOpen[ch.id] === false) { delete navOpen[ch.id]; saveNav(); }
       const open = navOpen[ch.id] !== undefined ? navOpen[ch.id] : containsCurrent;
+      const isSel = navSelId ? navSelId === ch.id : containsCurrent;
       html += `<div class="nav-chapter ${open ? '' : 'closed'}" data-ch="${ch.id}">
-        <div class="nav-chapter-head" data-toggle="${ch.id}">
+        <div class="nav-chapter-head ${isSel ? 'active' : ''}" data-toggle="${ch.id}">
           <span class="num">${ch.num}</span>
           <span>${ch.title}</span>
           <span class="nav-cnt">${done}/${docIds.length}</span>
@@ -289,6 +292,10 @@
         navOpen[ch] = navOpen[ch] === false ? true : false;
         saveNav();
         nav.querySelector(`[data-ch="${ch}"]`).classList.toggle('closed', navOpen[ch] === false);
+        // 点击大标题只切换颜色：深蓝挪到被点的这一章，不涉及文章内容
+        navSelId = ch;
+        nav.querySelectorAll('.nav-chapter[data-ch] > .nav-chapter-head').forEach(h => h.classList.remove('active'));
+        el.classList.add('active');
       };
     });
     nav.querySelectorAll('[data-go]').forEach(el => {
@@ -726,8 +733,8 @@
   const IQ_NO = {};
   IQ.questions.forEach((q, i) => { IQ_BY_ID[q.id] = q; IQ_NO[q.id] = i + 1; });
   const IQ_COLORS = {
-    go: '#0969da', solidity: '#8250df', evm: '#1a7f37', defi: '#9a6700',
-    nft: '#bf3989', backend: '#0550ae', projects: '#cf222e', 'system-design': '#57606a',
+    projects: '#cf222e', chain: '#1a7f37', ethtx: '#0969da', solidity: '#8250df',
+    token: '#bf3989', security: '#9a6700', eng: '#0550ae', go: '#0f6e56',
   };
   const IQ_LV = ['', '基础', '进阶', '深水'];
   let iqFilter = { cat: 'all', level: 0, state: 'all', kw: '' };
@@ -778,7 +785,10 @@
     const aEl = card.querySelector('.iq-a');
     if (!aEl.dataset.rendered) {
       const { html } = renderMD(q.a);
-      aEl.innerHTML = `<div class="iq-tags">${q.tags.map(t => `<span class="iq-tag">${escapeHtml(t)}</span>`).join('')}</div>
+      const tagsHtml = q.tags && q.tags.length
+        ? `<div class="iq-tags">${q.tags.map(t => `<span class="iq-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+        : '';
+      aEl.innerHTML = `${tagsHtml}
         ${html}
         <div class="iq-actions">
           <button class="btn small" data-set="known">🧠 已掌握</button>
@@ -841,7 +851,7 @@
       <div class="iq-hero">
         <div class="iq-hero-left">
           <h1>🧠 面试中心</h1>
-          <p>覆盖课程全部重要知识点的自测题库。先自己回答，再展开对照；标记「已掌握」的会记在本地。</p>
+          <p>四套项目拆解各留一个判断，加上区块链开发岗的常见题。先自己回答，再展开对照；标记「已掌握」的会记在本地。</p>
         </div>
         <div class="iq-hero-right">
           <div class="iq-ring-wrap">
