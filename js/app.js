@@ -735,6 +735,8 @@
   const IQ_COLORS = {
     projects: '#cf222e', chain: '#1a7f37', ethtx: '#0969da', solidity: '#8250df',
     token: '#bf3989', security: '#9a6700', eng: '#0550ae', go: '#0f6e56',
+    stake: '#1b7c83', univ2: '#e8590c', univ3: '#c2255c', auction: '#5f3dc4',
+    pattern: '#57606a', eip: '#0b7285', geth: '#24292f',
   };
   const IQ_LV = ['', '基础', '进阶', '深水'];
   let iqFilter = { cat: 'all', level: 0, state: 'all', kw: '' };

@@ -449,7 +449,7 @@ for (const ch of chapters) {
 //   1. 题目
 //      答案段落（缩进 3 空格，可多段）
 // 换题、加题只改这份 md，然后 node build.js
-const INTERVIEW_SRC = process.env.IQ_SRC || '/Users/cnmz/Study/ProjectBreakdown/区块链拆解项目面试题.md';
+const INTERVIEW_SRC = process.env.IQ_SRC || '/Users/cnmz/Study/ProjectBreakdown/区块链面试题.md';
 const INTERVIEW_OUT = path.join(__dirname, 'js', 'interview.js');
 
 // 分类名 → 稳定 id + 默认难度 + 兜底说明（改标题不会打乱配色和本地进度）
@@ -462,6 +462,13 @@ const IQ_CATS = {
   '签名、预言机与安全': { id: 'security', level: 2, desc: '签名重放、预言机操纵、抢跑与随机数' },
   '工程': { id: 'eng', level: 2, desc: '本地链、部署、索引、私钥管理' },
   'Go': { id: 'go', level: 2, desc: '撮合引擎用到的并发与工程细节' },
+  'MetaNodeStake（质押挖矿）': { id: 'stake', level: 3, desc: '多池质押记账：accRps、水位、锁定队列、代理升级' },
+  'Uniswap V2': { id: 'univ2', level: 3, desc: '恒定乘积 AMM：滑点、LP、闪电换币、TWAP 预言机' },
+  'Uniswap V3': { id: 'univ3', level: 3, desc: '集中流动性：tick、区间订单、mint/burn/collect' },
+  'NFT 拍卖作业': { id: 'auction', level: 3, desc: '多币种出价折算美元、预言机快照、UUPS 升级' },
+  '捐赠合约、提款方式与工具链': { id: 'pattern', level: 2, desc: 'transfer/send/call、pull 模式、constant/immutable' },
+  '常用 ERC / EIP': { id: 'eip', level: 2, desc: 'permit、1155/165/2981、1271、4626、4337' },
+  'Go-Ethereum': { id: 'geth', level: 2, desc: '执行层与共识层分工、交易池、MPT 状态根、abigen' },
 };
 
 function parseInterview() {
